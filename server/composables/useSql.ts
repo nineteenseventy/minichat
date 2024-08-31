@@ -8,6 +8,10 @@ const sql = postgres({
   onclose: onClose,
 });
 
+sql`SELECT 1;`.then(() => {
+  logger.log('Connected to PostgreSQL');
+});
+
 export const useSql = () => {
   return sql;
 };
