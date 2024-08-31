@@ -9,4 +9,8 @@
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  // icons
+  "material-icon-theme.folders.associations": {
+    "composables": "functions",
+  }
 }
