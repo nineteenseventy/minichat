@@ -9,6 +9,7 @@
     "preview": "nuxt preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
@@ -29,7 +30,8 @@
   },
   "devDependencies": {
     "@nuxtjs/color-mode": "^3.4.4",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "vue-tsc": "^2.1.2"
   },
   "overrides": {
     "vue": {
