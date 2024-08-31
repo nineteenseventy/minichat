@@ -37,6 +37,10 @@ export class RedisCache implements Cache {
           reject(err);
         });
     });
+
+    this.ensureConnected().then(() => {
+      this.logger.log('Connected to Redis');
+    });
   }
 
   private client: redis.RedisClientType;
