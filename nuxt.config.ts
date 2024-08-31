@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@nuxtjs/device',
     '@pinia/nuxt',
-    "@primevue/nuxt-module",
+    '@primevue/nuxt-module',
     '@vueuse/nuxt',
   ],
   alias: {
