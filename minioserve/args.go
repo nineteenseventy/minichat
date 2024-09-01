@@ -26,8 +26,8 @@ func (f *formatArg) UnmarshalText(text []byte) error {
 
 type Args struct {
 	Format             formatArg `arg:"--format" help:"Output format (json, pretty)" default:"json"`
-	Port               uint16    `arg:"--port,env:MINICHAT_PORT" help:"Port to listen on" default:"3001" `
-	Host               string    `arg:"--host,env:MINICHAT_HOST" help:"Host to listen on" default:"*"`
+	Port               uint16    `arg:"--port,env:MINIOSERVE_PORT" help:"Port to listen on" default:"3001" `
+	Host               string    `arg:"--host,env:MINIOSERVE_HOST" help:"Host to listen on" default:"*"`
 	AllowedBucketNames []string  `arg:"--allowed-bucket-names,required,env:MINIOSERVE_ALLOWED_BUCKET_NAMES" help:"Allowed bucket names"`
 	// Minio
 	MinioEndpoint  string `arg:"--minio-endpoint,required,env:MINIOSERVE_MINIO_ENDPOINT" help:"Minio endpoint"`
