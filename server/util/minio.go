@@ -42,3 +42,18 @@ func GetMinio() *minio.Client {
 	}
 	return globalMinio
 }
+
+func GetMinioEnsureBucket(ctx context.Context, bucket string) (*minio.Client, error) {
+	minioClient := GetMinio()
+	exists, err := minioClient.BucketExists(ctx, bucket)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		err := minioClient.MakeBucket(ctx, bucket, minio.MakeBucketOptions{})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return minioClient, nil
+}
