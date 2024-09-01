@@ -25,15 +25,21 @@ func (f *formatArg) UnmarshalText(text []byte) error {
 }
 
 type Args struct {
-	Format           formatArg `arg:"--format" help:"Output format (json, pretty)" default:"json"`
-	Port             uint16    `arg:"--port,env:MINICHAT_PORT" help:"Port to listen on" default:"3001" `
-	Host             string    `arg:"--host,env:MINICHAT_HOST" help:"Host to listen on" default:"*"`
-	PostgresHost     string    `arg:"--postgres-host,required,env:MINICHAT_POSTGRES_HOST" help:"Postgres host"`
-	PostgresPort     uint16    `arg:"--postgres-port,env:MINICHAT_POSTGRES_PORT" help:"Postgres port" default:"5432"`
-	PostgresDatabase string    `arg:"--postgres-database,required,env:MINICHAT_POSTGRES_DATABASE" help:"Postgres database"`
-	PostgresUser     string    `arg:"--postgres-user,required,env:MINICHAT_POSTGRES_USER" help:"Postgres user"`
-	PostgresPassword string    `arg:"--postgres-password,required,env:MINICHAT_POSTGRES_PASSWORD" help:"Postgres password"`
-	PostgresTls      bool      `arg:"--postgres-tls,env:MINICHAT_POSTGRES_TLS" help:"Use TLS for Postgres" default:"false"`
+	Format formatArg `arg:"--format" help:"Output format (json, pretty)" default:"json"`
+	Port   uint16    `arg:"--port,env:MINICHAT_PORT" help:"Port to listen on" default:"3001" `
+	Host   string    `arg:"--host,env:MINICHAT_HOST" help:"Host to listen on" default:"*"`
+	// Postgres
+	PostgresHost     string `arg:"--postgres-host,required,env:MINICHAT_POSTGRES_HOST" help:"Postgres host"`
+	PostgresPort     uint16 `arg:"--postgres-port,env:MINICHAT_POSTGRES_PORT" help:"Postgres port" default:"5432"`
+	PostgresDatabase string `arg:"--postgres-database,required,env:MINICHAT_POSTGRES_DATABASE" help:"Postgres database"`
+	PostgresUser     string `arg:"--postgres-user,required,env:MINICHAT_POSTGRES_USER" help:"Postgres user"`
+	PostgresPassword string `arg:"--postgres-password,required,env:MINICHAT_POSTGRES_PASSWORD" help:"Postgres password"`
+	PostgresTls      bool   `arg:"--postgres-tls,env:MINICHAT_POSTGRES_TLS" help:"Use TLS for Postgres" default:"false"`
+	// Redis
+	RedisHost     string `arg:"--redis-host,required,env:MINICHAT_REDIS_HOST" help:"Redis host"`
+	RedisPort     uint16 `arg:"--redis-port,env:MINICHAT_REDIS_PORT" help:"Redis port" default:"6379"`
+	RedisPassword string `arg:"--redis-password,env:MINICHAT_REDIS_PASSWORD" help:"Redis password"`
+	RedisTls      bool   `arg:"--redis-tls,env:MINICHAT_REDIS_TLS" help:"Use TLS for Redis" default:"false"`
 }
 
 func ParseArgs() Args {

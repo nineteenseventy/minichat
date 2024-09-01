@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -26,6 +27,18 @@ func initDatabase(args Args) {
 		Tls:      args.PostgresTls,
 	}
 	err := util.InitDatabase(context.Background(), databaseConfig)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func initRedis(args Args) {
+	redisConfig := redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", args.RedisHost, args.RedisPort),
+		Password: args.RedisPassword,
+		DB:       0,
+	}
+	err := util.InitRedis(context.Background(), redisConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -54,6 +67,7 @@ func main() {
 	logger := util.GetLogger("server")
 
 	initDatabase(args)
+	initRedis(args)
 
 	r := chi.NewRouter()
 	r.Mount("/api", api.UserRouter())
