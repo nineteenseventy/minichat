@@ -5,12 +5,11 @@ import (
 	"net/http"
 )
 
-func JSONResponse(w http.ResponseWriter, v interface{}) error {
+func JSONResponse(w http.ResponseWriter, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 	err := encoder.Encode(v)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	return nil
 }

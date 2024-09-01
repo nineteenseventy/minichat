@@ -73,7 +73,11 @@ func parseHost(args Args) string {
 }
 
 func main() {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Warn().Err(err).Msg("Failed to load .env file")
+	}
+
 	args := GetArgs()
 
 	initZerolog(args)
@@ -89,7 +93,7 @@ func main() {
 
 	host := parseHost(args)
 	logger.Info().Str("host", host).Msg("Starting server")
-	err := http.ListenAndServe(host, r)
+	err = http.ListenAndServe(host, r)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to start server")
 	}
