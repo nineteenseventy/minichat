@@ -5,6 +5,7 @@ import { ref, type Ref } from 'vue';
 const { user } = useAuth0();
 const api = useApi();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const users: Ref<any> = ref([]);
 api.get('/users').then((response) => {
   users.value = response.data;
