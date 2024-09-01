@@ -3,9 +3,10 @@ name: Build
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
-  build:
+  web:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,8 +19,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: env Vars
+        run: |
+          cat <<EOF > .env
+          VITE_AUTH0_DOMAIN=minichat.eu.auth0.com
+          VITE_AUTH0_CLIENT_ID=${{ secrets.AUTH0_CLIENT_ID }}
+          VITE_AUTH0_AUDIENCE=https://minichat.eu.auth0.com/api/v2/
+          VITE_EXTERNAL_URL=https://minichat.com
+          VITE_API_URL=https://api.minichat.com
+          EOF
+
       - name: Build
-        run: npm run build
+        run: npm run web-build
 
       - name: Docker login
         uses: docker/login-action@v3
@@ -32,13 +43,39 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: minichat
+          images: minichat-web
 
       - name: Docker build
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./Dockerfile
+          file: ./web/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: minichat-server
+
+      - name: Docker build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./server/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 

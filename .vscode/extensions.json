@@ -1,9 +1,7 @@
 {
-    "recommendations": [
-      "dbaeumer.vscode-eslint",
-      "esbenp.prettier-vscode",
-      "octref.vetur",
-      "nuxtlabs.vetur",
-      "eamodio.gitlens"
-    ]
+  "recommendations": [
+    "Vue.volar",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode"
+  ]
 }

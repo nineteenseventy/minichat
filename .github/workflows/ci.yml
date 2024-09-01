@@ -24,4 +24,9 @@ jobs:
         run: npm run lint
 
       - name: Type check
-        run: npm run typecheck
+        run: npm run web-type-check
+
+      - name: go-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
