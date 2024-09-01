@@ -1,5 +1,6 @@
 import { createAuthGuard } from '@auth0/auth0-vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import { routes } from 'vue-router/auto-routes';
 import auth0 from '../auth0';
 
 const router = createRouter({
@@ -14,11 +15,12 @@ const router = createRouter({
         return { path: appState.appState?.target };
       },
     },
-    {
-      path: '/',
-      name: 'App',
-      component: () => import('../views/AppView.vue'),
-    },
+    // {
+    //   path: '/',
+    //   name: 'App',
+    //   component: () => import('../views/AppView.vue'),
+    // },
+    ...routes,
   ],
 });
 
