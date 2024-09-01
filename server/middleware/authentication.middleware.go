@@ -21,6 +21,16 @@ func errorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	http.Error(w, err.Error(), http.StatusUnauthorized)
 }
 
+func cleanupUrl(urlString string) string {
+	if len(urlString) <= 0 {
+		return urlString
+	}
+	if urlString[len(urlString)-1] != '/' {
+		return fmt.Sprintf("%s/", urlString)
+	}
+	return urlString
+}
+
 func AuthenticationMiddleware(options AuthenticationMiddlewareOptions) func(http.Handler) http.Handler {
 	logger := util.GetLogger("http.middleware.authentication")
 	issuerString := fmt.Sprintf("https://%s", options.Domain)
@@ -35,7 +45,7 @@ func AuthenticationMiddleware(options AuthenticationMiddlewareOptions) func(http
 	jwtValidator, err := validator.New(
 		provider.KeyFunc,
 		validator.RS256,
-		issuerUrl.String(),
+		cleanupUrl(issuerUrl.String()),
 		options.Audience,
 		validator.WithAllowedClockSkew(time.Minute),
 	)

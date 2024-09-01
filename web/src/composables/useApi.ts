@@ -5,8 +5,9 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-api.interceptors.request.use((config) => {
-  const token = auth0.getAccessTokenSilently();
+api.interceptors.request.use(async (config) => {
+  const token = await auth0.getAccessTokenSilently();
+  console.log('token', token);
   config.headers.Authorization = `Bearer ${token}`;
   return config;
 });

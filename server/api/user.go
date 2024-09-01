@@ -14,16 +14,14 @@ type User struct {
 
 func userHandler(w http.ResponseWriter, r *http.Request) {
 	conn := util.GetDatabase()
-	rows, err := conn.Query(r.Context(), "SELECT id, name FROM users")
+	rows, err := conn.Query(r.Context(), "SELECT id FROM minichat.users")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	var result struct {
-		Users []User `json:"users"`
-	}
+	var users []User = []User{}
 
 	for rows.Next() {
 		var id int
@@ -33,10 +31,10 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		result.Users = append(result.Users, User{ID: id, Name: name})
+		users = append(users, User{ID: id, Name: name})
 	}
 
-	util.JSONResponse(w, result)
+	util.JSONResponse(w, util.NewResult(users))
 }
 
 func UserRouter() chi.Router {
