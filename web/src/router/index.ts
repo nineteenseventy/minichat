@@ -1,5 +1,6 @@
 import { createAuthGuard } from '@auth0/auth0-vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import auth0 from '../auth0';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,20 +8,23 @@ const router = createRouter({
     {
       path: '/callback',
       name: 'callback',
-      component: () => import('../views/CallbackView.vue'),
+      redirect: '/',
+      beforeEnter: async (to) => {
+        const appState = await auth0.handleRedirectCallback(to.fullPath);
+        return { path: appState.appState?.target };
+      },
     },
     {
-      path: '',
-      beforeEnter: createAuthGuard(),
-      children: [
-        {
-          path: '/',
-          name: 'about',
-          component: () => import('../views/AppView.vue'),
-        },
-      ],
+      path: '/',
+      name: 'App',
+      component: () => import('../views/AppView.vue'),
     },
   ],
+});
+
+router.beforeEach((to) => {
+  if (to.name === 'callback') return;
+  return createAuthGuard()(to);
 });
 
 export default router;

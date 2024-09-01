@@ -49,6 +49,7 @@ func LoggerMiddleware() func(http.Handler) http.Handler {
 						r.RequestURI,
 					))
 			}()
+
 			next.ServeHTTP(&lrw, r)
 		})
 	}
