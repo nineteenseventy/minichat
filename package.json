@@ -10,6 +10,8 @@
     "web-type-check": "vue-tsc --build ./web --force",
     "server-dev": "go run ./server --format pretty --port 3001 --host localhost",
     "server-build": "go build -o dist/server/server ./server",
+    "minioserve-dev": "go run ./minioserve --format pretty --port 3002 --host localhost",
+    "minioserve-build": "go build -o dist/minioserve/minioserve ./minioserve",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts"
   },
   "dependencies": {
