@@ -1,31 +1,24 @@
-# VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# Nuxt dev/build outputs
-.output
-.data
-.nuxt
-.nitro
-.cache
-dist
-
-# Node dependencies
-node_modules
-
 # Logs
 logs
 *.log
+npm-debug.log*
 
-# Misc
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+
 .DS_Store
-.fleet
-.idea
 
-# Local env files
+# Build files
+node_modules
+dist
+dist-ssr
+*.local
+
+# env
 .env
 .env.*
 !.env.example
