@@ -10,6 +10,7 @@ export default defineConfig({
   envDir: '../',
   build: {
     outDir: '../dist/web',
+    emptyOutDir: true,
   },
   resolve: {
     alias: {
