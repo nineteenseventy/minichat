@@ -8,9 +8,8 @@
     "web-build": "vite build web",
     "web-preview": "vite preview web",
     "web-type-check": "vue-tsc --build ./web --force",
-    "api-dev": "nitro dev --dir api --port 3001",
-    "api-build": "nitro build --dir api",
-    "api-prepare": "nitro prepare --dir api",
+    "server-dev": "go run ./server --format pretty --port 3001 --host localhost",
+    "server-build": "go build -o dist/server/server ./server",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
     "postinstall": "npm run api-prepare"
   },
