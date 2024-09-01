@@ -2,6 +2,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import postgres from 'postgres';
+import dotenv from 'dotenv';
 
 export interface MigrationFunction {
   (sql: postgres.Sql): Promise<void>;
@@ -104,6 +105,7 @@ async function ensureMigrationsTable(sql: postgres.Sql) {
 }
 
 async function main() {
+  dotenv.config();
   const sql = postgres({
     onnotice: onNotice,
   });

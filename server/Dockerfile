@@ -5,6 +5,7 @@ COPY go.mod go.sum ./
 RUN go mod download -x
 
 COPY server/ server/
+COPY core/ core/
 RUN go build -o /minioserve ./server
 
 FROM alpine:3.12

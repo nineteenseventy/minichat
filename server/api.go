@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/nineteenseventy/minichat/core/http/middleware"
 	"github.com/nineteenseventy/minichat/server/api"
-	"github.com/nineteenseventy/minichat/server/middleware"
 )
 
 func getRoutes() []func() chi.Router {

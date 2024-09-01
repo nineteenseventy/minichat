@@ -4,7 +4,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/nineteenseventy/minichat/server/util"
+	"github.com/nineteenseventy/minichat/core/database"
+	"github.com/nineteenseventy/minichat/core/http/util"
 )
 
 type User struct {
@@ -13,7 +14,7 @@ type User struct {
 }
 
 func userHandler(w http.ResponseWriter, r *http.Request) {
-	conn := util.GetDatabase()
+	conn := database.GetDatabase()
 	rows, err := conn.Query(r.Context(), "SELECT id FROM minichat.users")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

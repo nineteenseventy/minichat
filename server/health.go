@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/nineteenseventy/minichat/server/util"
+	"github.com/nineteenseventy/minichat/core/http/util"
 )
 
 type HealthMessage struct {

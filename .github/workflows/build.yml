@@ -83,7 +83,33 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
-  migration-build:
+  minioserve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/${{ github.repository }}/minioserve
+
+      - name: Docker build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./minioserve/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+  database:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -110,12 +136,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ghcr.io/${{ github.repository }}/migration
+          images: ghcr.io/${{ github.repository }}/database
 
       - name: Docker build
         uses: docker/build-push-action@v2
         with:
-          context: ./database
-          file: ./Dockerfile
+          context: .
+          file: ./database/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}

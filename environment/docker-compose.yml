@@ -1,0 +1,65 @@
+services:
+  server:
+    image: ghcr.io/nineteenseventy/minichat/server
+    restart: always
+    environment:
+      - MINICHAT_POSTGRES_HOST=postgres
+      - MINICHAT_POSTGRES_DATABASE=minichat
+      - PGUSEMINICHAT_POSTGRES_USERRNAME=postgres
+      - PGPASSWMINICHAT_POSTGRES_PASSWORDORD=postgres
+      - MINICHAT_MINIO_ENDPOINT=minio
+      - MINICHAT_MINIO_ACCESS_KEY=minioadmin
+      - MINICHAT_MINIO_SECRET_KEY=minioadmin
+      - MINICHAT_REDIS_HOST=redis
+      - MINICHAT_AUTH0_DOMAIN=minichat.eu.auth0.com
+      - MINICHAT_AUTH0_AUDIENCE=https://minichat.eu.auth0.com/api/v2/
+      - MINICHAT_AUTH0_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      - MINICHAT_AUTH0_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+  web:
+    image: ghcr.io/nineteenseventy/minichat/web
+    restart: always
+
+  minioserve:
+    image: ghcr.io/nineteenseventy/minichat/minioserve
+    restart: always
+    environment:
+      - MINIOSERVE_ALLOWED_BUCKET_NAMES=minichat
+      - MINIOSERVE_MINIO_ENDPOINT=minio
+      - MINIOSERVE_MINIO_ACCESS_KEY=minioadmin
+      - MINIOSERVE_MINIO_SECRET_KEY=minioadmin
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=minichat
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio
+    restart: always
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio-data:/data
+
+  redis:
+    image: redis:latest
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    command: ['nginx', '-g', 'daemon off;']
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - '8080:80'
+
+volumes:
+  minio-data:
+  postgres-data:
