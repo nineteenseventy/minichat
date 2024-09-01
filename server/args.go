@@ -46,10 +46,23 @@ type Args struct {
 	MinioAccessKey string `arg:"--minio-access-key,required,env:MINICHAT_MINIO_ACCESS_KEY" help:"Minio access key"`
 	MinioSecretKey string `arg:"--minio-secret-key,required,env:MINICHAT_MINIO_SECRET_KEY" help:"Minio secret key"`
 	MinioUseSSL    bool   `arg:"--minio-use-ssl,env:MINICHAT_MINIO_USE_SSL" help:"Use SSL for Minio" default:"false"`
+	// Auth0
+	Auth0Domain   string   `arg:"--auth0-domain,required,env:MINICHAT_AUTH0_DOMAIN" help:"Auth0 domain"`
+	Auth0Audience []string `arg:"--auth0-audience,required,env:MINICHAT_AUTH0_AUDIENCE" help:"Auth0 audience"`
 }
 
-func ParseArgs() Args {
-	var args Args
-	arg.MustParse(&args)
-	return args
+var parsedArgs bool
+var globalArgs Args
+
+func parseArgs() Args {
+	parsedArgs = true
+	arg.MustParse(&globalArgs)
+	return globalArgs
+}
+
+func GetArgs() Args {
+	if !parsedArgs {
+		parseArgs()
+	}
+	return globalArgs
 }

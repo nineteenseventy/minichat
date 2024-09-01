@@ -12,7 +12,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/nineteenseventy/minichat/server/api"
 	"github.com/nineteenseventy/minichat/server/util"
 	"github.com/nineteenseventy/minichat/server/util/database"
 )
@@ -75,7 +74,7 @@ func parseHost(args Args) string {
 
 func main() {
 	godotenv.Load()
-	args := ParseArgs()
+	args := GetArgs()
 
 	initZerolog(args)
 	logger := util.GetLogger("server")
@@ -85,7 +84,7 @@ func main() {
 	initMinio(args)
 
 	r := chi.NewRouter()
-	r.Mount("/api", api.UserRouter())
+	r.Mount("/api", ApiRouter())
 	r.Mount("/", HealthRouter())
 
 	host := parseHost(args)
