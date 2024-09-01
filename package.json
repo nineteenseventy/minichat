@@ -1,42 +1,44 @@
 {
-  "name": "nuxt-app",
+  "name": "web",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "typecheck": "nuxt typecheck",
-    "postinstall": "nuxt prepare"
+    "web-dev": "vite web --port 3000",
+    "web-build": "vite build web",
+    "web-preview": "vite preview web",
+    "web-type-check": "vue-tsc --build ./web --force",
+    "server-dev": "go run ./server --format pretty --port 3001 --host localhost",
+    "server-build": "go build -o dist/server/server ./server",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts"
   },
   "dependencies": {
-    "@formkit/auto-animate": "^0.8.2",
-    "@nuxt/eslint": "^0.5.4",
-    "@nuxtjs/device": "^3.2.2",
-    "@pinia/nuxt": "^0.5.4",
-    "@primevue/nuxt-module": "^4.0.5",
-    "@vueuse/core": "^11.0.3",
-    "@vueuse/nuxt": "^11.0.3",
-    "marked": "^14.1.0",
-    "minio": "^8.0.1",
-    "nuxt": "^3.13.0",
-    "nuxt-auth-utils": "^0.3.5",
-    "postgres": "^3.4.4",
-    "redis": "^4.7.0",
-    "vue": "latest"
+    "@auth0/auth0-vue": "^2.3.3",
+    "@primevue/themes": "^4.0.5",
+    "axios": "^1.7.7",
+    "pinia": "^2.1.7",
+    "primevue": "^4.0.5",
+    "vue": "^3.4.29",
+    "vue-router": "^4.3.3"
   },
   "devDependencies": {
-    "@nuxtjs/color-mode": "^3.4.4",
-    "prettier": "^3.3.3",
-    "tsx": "^4.19.0",
-    "vue-tsc": "^2.1.2"
-  },
-  "overrides": {
-    "vue": {
-      "version": "latest"
-    }
+    "@rushstack/eslint-patch": "^1.8.0",
+    "@tsconfig/node20": "^20.1.4",
+    "@types/eslint": "^9.6.1",
+    "@types/node": "^20.14.5",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@vitejs/plugin-vue": "^5.0.5",
+    "@vue/eslint-config-prettier": "^9.0.0",
+    "@vue/eslint-config-typescript": "^13.0.0",
+    "@vue/tsconfig": "^0.5.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.23.0",
+    "npm-run-all2": "^6.2.0",
+    "prettier": "^3.2.5",
+    "typescript": "~5.4.0",
+    "vite": "^5.3.1",
+    "vite-plugin-vue-devtools": "^7.3.1",
+    "vue-tsc": "^2.0.21"
   }
 }
