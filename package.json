@@ -8,12 +8,17 @@
     "web-build": "vite build web",
     "web-preview": "vite preview web",
     "web-type-check": "vue-tsc --build ./web --force",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts"
+    "api-dev": "nitro dev --dir api --port 3001",
+    "api-build": "nitro build --dir api",
+    "api-prepare": "nitro prepare --dir api",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
+    "postinstall": "npm run api-prepare"
   },
   "dependencies": {
     "@auth0/auth0-vue": "^2.3.3",
     "@primevue/themes": "^4.0.5",
     "axios": "^1.7.7",
+    "nitropack": "^2.9.7",
     "pinia": "^2.1.7",
     "primevue": "^4.0.5",
     "vue": "^3.4.29",
