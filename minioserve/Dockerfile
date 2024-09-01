@@ -11,4 +11,6 @@ FROM alpine:3.12
 
 COPY --from=build /minioserve /usr/local/bin/minioserve
 
+
+
 CMD [ "minioserve" ]

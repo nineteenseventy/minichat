@@ -9,7 +9,7 @@ import (
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
-	"github.com/nineteenseventy/minichat/server/util"
+	"github.com/nineteenseventy/minichat/core/logging"
 )
 
 type AuthenticationMiddlewareOptions struct {
@@ -32,7 +32,7 @@ func cleanupUrl(urlString string) string {
 }
 
 func AuthenticationMiddleware(options AuthenticationMiddlewareOptions) func(http.Handler) http.Handler {
-	logger := util.GetLogger("http.middleware.authentication")
+	logger := logging.GetLogger("http.middleware.authentication")
 	issuerString := fmt.Sprintf("https://%s", options.Domain)
 	issuerUrl, err := url.Parse(issuerString)
 	if err != nil {

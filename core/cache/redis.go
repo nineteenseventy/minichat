@@ -1,15 +1,16 @@
-package util
+package cache
 
 import (
 	"context"
 
+	"github.com/nineteenseventy/minichat/core/logging"
 	"github.com/redis/go-redis/v9"
 )
 
 var globalRedis *redis.Client
 
 func InitRedis(ctx context.Context, config redis.Options) error {
-	logger := GetLogger("redis")
+	logger := logging.GetLogger("redis")
 
 	globalRedis = redis.NewClient(&config)
 	info, err := globalRedis.InfoMap(ctx, "server").Result()

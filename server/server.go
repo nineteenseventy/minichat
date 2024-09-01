@@ -12,8 +12,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/nineteenseventy/minichat/server/util"
-	"github.com/nineteenseventy/minichat/server/util/database"
+	"github.com/nineteenseventy/minichat/core"
+	"github.com/nineteenseventy/minichat/core/cache"
+	"github.com/nineteenseventy/minichat/core/database"
+	"github.com/nineteenseventy/minichat/core/logging"
 )
 
 func initDatabase(args Args) {
@@ -25,7 +27,7 @@ func initDatabase(args Args) {
 		Password: args.PostgresPassword,
 		Tls:      args.PostgresTls,
 	}
-	err := util.InitDatabase(context.Background(), databaseConfig)
+	err := database.InitDatabase(context.Background(), databaseConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -37,21 +39,21 @@ func initRedis(args Args) {
 		Password: args.RedisPassword,
 		DB:       0,
 	}
-	err := util.InitRedis(context.Background(), redisConfig)
+	err := cache.InitRedis(context.Background(), redisConfig)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func initMinio(args Args) {
-	minioConfig := util.MinioConfig{
+	minioConfig := core.MinioConfig{
 		Endpoint:  args.MinioEndpoint,
 		Port:      args.MinioPort,
 		AccessKey: args.MinioAccessKey,
 		SecretKey: args.MinioSecretKey,
 		UseSSL:    args.MinioUseSSL,
 	}
-	err := util.InitMinio(context.Background(), minioConfig)
+	err := core.InitMinio(context.Background(), minioConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +83,7 @@ func main() {
 	args := GetArgs()
 
 	initZerolog(args)
-	logger := util.GetLogger("server")
+	logger := logging.GetLogger("server")
 
 	initDatabase(args)
 	initRedis(args)

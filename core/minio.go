@@ -1,4 +1,4 @@
-package util
+package core
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/nineteenseventy/minichat/core/logging"
 )
 
 type MinioConfig struct {
@@ -19,7 +20,7 @@ type MinioConfig struct {
 var globalMinio *minio.Client
 
 func InitMinio(ctx context.Context, config MinioConfig) error {
-	logger := GetLogger("minio")
+	logger := logging.GetLogger("minio")
 
 	var err error
 	endpoint := fmt.Sprintf("%s:%d", config.Endpoint, config.Port)
