@@ -40,6 +40,12 @@ type Args struct {
 	RedisPort     uint16 `arg:"--redis-port,env:MINICHAT_REDIS_PORT" help:"Redis port" default:"6379"`
 	RedisPassword string `arg:"--redis-password,env:MINICHAT_REDIS_PASSWORD" help:"Redis password"`
 	RedisTls      bool   `arg:"--redis-tls,env:MINICHAT_REDIS_TLS" help:"Use TLS for Redis" default:"false"`
+	// Minio
+	MinioEndpoint  string `arg:"--minio-endpoint,required,env:MINICHAT_MINIO_ENDPOINT" help:"Minio endpoint"`
+	MinioPort      uint16 `arg:"--minio-port,env:MINICHAT_MINIO_PORT" help:"Minio port" default:"9000"`
+	MinioAccessKey string `arg:"--minio-access-key,required,env:MINICHAT_MINIO_ACCESS_KEY" help:"Minio access key"`
+	MinioSecretKey string `arg:"--minio-secret-key,required,env:MINICHAT_MINIO_SECRET_KEY" help:"Minio secret key"`
+	MinioUseSSL    bool   `arg:"--minio-use-ssl,env:MINICHAT_MINIO_USE_SSL" help:"Use SSL for Minio" default:"false"`
 }
 
 func ParseArgs() Args {

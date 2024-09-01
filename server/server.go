@@ -44,6 +44,20 @@ func initRedis(args Args) {
 	}
 }
 
+func initMinio(args Args) {
+	minioConfig := util.MinioConfig{
+		Endpoint:  args.MinioEndpoint,
+		Port:      args.MinioPort,
+		AccessKey: args.MinioAccessKey,
+		SecretKey: args.MinioSecretKey,
+		UseSSL:    args.MinioUseSSL,
+	}
+	err := util.InitMinio(context.Background(), minioConfig)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func initZerolog(args Args) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	if args.Format.Format == FormatArgPretty {
@@ -68,13 +82,15 @@ func main() {
 
 	initDatabase(args)
 	initRedis(args)
+	initMinio(args)
 
 	r := chi.NewRouter()
 	r.Mount("/api", api.UserRouter())
 	r.Mount("/", HealthRouter())
 
-	logger.Info().Uint16("port", args.Port).Str("host", args.Host).Msg("Starting server")
-	err := http.ListenAndServe(parseHost(args), r)
+	host := parseHost(args)
+	logger.Info().Str("host", host).Msg("Starting server")
+	err := http.ListenAndServe(host, r)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to start server")
 	}

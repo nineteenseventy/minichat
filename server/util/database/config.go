@@ -24,7 +24,6 @@ func ParseConfig(config DatabaseConfig) (*pgx.ConnConfig, error) {
 		config.Port,
 		config.Database,
 	)
-	fmt.Println(connStr)
 	pgConfig, err := pgx.ParseConfig(connStr)
 	if err != nil {
 		return nil, err
@@ -33,8 +32,6 @@ func ParseConfig(config DatabaseConfig) (*pgx.ConnConfig, error) {
 	if !config.Tls {
 		pgConfig.TLSConfig = nil
 	}
-
-	fmt.Println(pgConfig)
 
 	return pgConfig, nil
 }
