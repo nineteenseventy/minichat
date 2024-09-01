@@ -12,13 +12,18 @@
     "server-build": "go build -o dist/server/server ./server",
     "minioserve-dev": "go run ./minioserve --format pretty --port 3002 --host localhost",
     "minioserve-build": "go build -o dist/minioserve/minioserve ./minioserve",
+    "database-build": "npx tsc -p database",
+    "database-start": "node dist/database/migration.js",
+    "database-dev": "npm run database-build && npm run database-start",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts"
   },
   "dependencies": {
     "@auth0/auth0-vue": "^2.3.3",
     "@primevue/themes": "^4.0.5",
     "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
     "pinia": "^2.1.7",
+    "postgres": "^3.4.4",
     "primevue": "^4.0.5",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3"

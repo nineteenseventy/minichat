@@ -109,7 +109,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
-  migration-build:
+  database:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -136,12 +136,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ghcr.io/${{ github.repository }}/migration
+          images: ghcr.io/${{ github.repository }}/database
 
       - name: Docker build
         uses: docker/build-push-action@v2
         with:
-          context: ./database
-          file: ./Dockerfile
+          context: .
+          file: ./database/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}

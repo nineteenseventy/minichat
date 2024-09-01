@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN npm ci --include=dev
+RUN npm ci --only=production
 
-COPY database/ ./
+COPY dist/database/ ./
 
-CMD [ "npx", "tsx", "migration.ts" ]
+CMD [ "node", "migration.js" ]
