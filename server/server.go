@@ -1,42 +1,66 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/nineteenseventy/minichat/server/api"
 	"github.com/nineteenseventy/minichat/server/util"
+	"github.com/nineteenseventy/minichat/server/util/database"
 )
 
-func main() {
-	args := ParseArgs()
+func initDatabase(args Args) {
+	databaseConfig := database.DatabaseConfig{
+		Host:     args.PostgresHost,
+		Port:     args.PostgresPort,
+		Database: args.PostgresDatabase,
+		User:     args.PostgresUser,
+		Password: args.PostgresPassword,
+		Tls:      args.PostgresTls,
+	}
+	err := util.InitDatabase(context.Background(), databaseConfig)
+	if err != nil {
+		panic(err)
+	}
+}
 
+func initZerolog(args Args) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	if args.Format.Format == FormatArgPretty {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
+}
 
+func parseHost(args Args) string {
+	host := args.Host
+	if args.Host == "*" {
+		host = ""
+	}
+	return fmt.Sprintf("%s:%d", host, args.Port)
+}
+
+func main() {
+	godotenv.Load()
+	args := ParseArgs()
+
+	initZerolog(args)
 	logger := util.GetLogger("server")
 
+	initDatabase(args)
+
 	r := chi.NewRouter()
-	r.Mount("/api", api.ApiRouter())
+	r.Mount("/api", api.UserRouter())
 	r.Mount("/", HealthRouter())
 
 	logger.Info().Uint16("port", args.Port).Str("host", args.Host).Msg("Starting server")
-
-	var host string
-	if args.Host == "*" {
-		host = ""
-	} else {
-		host = args.Host
-	}
-
-	err := http.ListenAndServe(host+":"+strconv.FormatInt(int64(args.Port), 10), r)
+	err := http.ListenAndServe(parseHost(args), r)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to start server")
 	}
