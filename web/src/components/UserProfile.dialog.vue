@@ -7,6 +7,7 @@ import { useUserStore } from '@/stores/user.store';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatus.component.vue';
+import SpinnerComponent from './spinner.component.vue';
 
 interface DialogRef {
   value: DynamicDialogInstance;
@@ -17,7 +18,7 @@ const router = useRouter();
 const userStore = useUserStore();
 
 const user = dialogRef?.value.data.user ?? 'me';
-const { data, error } = useApi(`/users/${user}/profile`, {
+const { data, error, isFetching } = useApi(`/users/${user}/profile`, {
   afterFetch(ctx) {
     if (dialogRef) {
       dialogRef.value.options.props!.style.backgroundColor = ctx.data.color;
@@ -41,6 +42,9 @@ const bio = computed(() => {
 
 <template>
   <div class="profile">
+    <div class="loading" v-if="isFetching">
+      <SpinnerComponent />
+    </div>
     <UserPictureOnlineStatusComponent :picture="data?.picture" :userId="user" />
     <span class="username">{{ data?.username }}</span>
     <span v-if="!!error" class="profile-error"
@@ -64,6 +68,18 @@ const bio = computed(() => {
   display: flex;
   flex-direction: column;
   margin-top: 0.5rem;
+}
+
+.loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .user-profile {

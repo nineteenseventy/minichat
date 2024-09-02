@@ -11,6 +11,7 @@ declare module 'vue' {
     'Message.component': typeof import('./src/components/Message.component.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    'Spinner.component': typeof import('./src/components/spinner.component.vue')['default']
     'User.component': typeof import('./src/components/User.component.vue')['default']
     'UserAvatar.component': typeof import('./src/components/userAvatar.component.vue')['default']
     'UserPicture.component': typeof import('./src/components/UserPicture.component.vue')['default']
