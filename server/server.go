@@ -15,6 +15,7 @@ import (
 	"github.com/nineteenseventy/minichat/core"
 	"github.com/nineteenseventy/minichat/core/cache"
 	"github.com/nineteenseventy/minichat/core/database"
+	"github.com/nineteenseventy/minichat/core/http/middleware"
 	"github.com/nineteenseventy/minichat/core/logging"
 )
 
@@ -90,6 +91,7 @@ func main() {
 	initMinio(args)
 
 	r := chi.NewRouter()
+	r.Use(middleware.CorsMiddleware())
 	r.Mount("/api", ApiRouter())
 	r.Mount("/", HealthRouter())
 

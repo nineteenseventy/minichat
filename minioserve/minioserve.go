@@ -124,6 +124,7 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.LoggerMiddleware())
+	r.Use(middleware.CorsMiddleware())
 	r.Get("/{bucket}/*", serve)
 
 	host := parseHost(args)
