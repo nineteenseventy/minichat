@@ -23,7 +23,6 @@ const { data, error, isFetching } = useApi(`/users/${user}/profile`, {
     if (dialogRef) {
       dialogRef.value.options.props!.style.backgroundColor = ctx.data.color;
     }
-    userStore.setUser(ctx.data);
     return ctx;
   },
 }).json<UserProfile>();

@@ -5,7 +5,7 @@ import type { User } from '@/interfaces/user.interface';
 import { useUserStore } from '@/stores/user.store';
 
 const me: User = {
-  id: 'me',
+  id: '28585f72-0eb6-49ab-97ec-b7453a0f526b',
   username: 'MeroFuruya',
   picture: 'https://avatars.githubusercontent.com/u/29742437?v=4',
 };
