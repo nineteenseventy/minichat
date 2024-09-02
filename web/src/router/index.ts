@@ -15,11 +15,6 @@ const router = createRouter({
         return { path: appState.appState?.target };
       },
     },
-    // {
-    //   path: '/',
-    //   name: 'App',
-    //   component: () => import('../views/AppView.vue'),
-    // },
     ...routes,
   ],
 });

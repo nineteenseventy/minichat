@@ -5,6 +5,8 @@ import { ref, type Ref } from 'vue';
 const { user } = useAuth0();
 const api = useApi();
 
+console.log(user);
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const users: Ref<any> = ref([]);
 api.get('/users').then((response) => {
@@ -13,7 +15,7 @@ api.get('/users').then((response) => {
 </script>
 
 <template>
-  <div>{{ user?.name }}</div>
+  <div>{{ user?.email }}</div>
   <ul>
     <li v-for="user in users" :key="user.id">{{ user.name }}</li>
   </ul>
