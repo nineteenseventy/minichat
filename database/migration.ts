@@ -4,6 +4,8 @@ import path from 'path';
 import postgres from 'postgres';
 import dotenv from 'dotenv';
 
+const PG_MIN_SAFE_INTEGER = -2147483648;
+
 export interface MigrationFunction {
   (sql: postgres.Sql): Promise<void>;
 }
@@ -115,13 +117,13 @@ async function main() {
   const highestMigration = await sql`
   select Max(number)
   from migrations
-  `.then((result) => result[0].max ?? Number.MIN_SAFE_INTEGER);
+  `.then((result) => result[0].max ?? PG_MIN_SAFE_INTEGER);
 
   const highestMigrationFile = await sql`
     select Max(file_number)
     from migrations
     where number = ${highestMigration}
-  `.then((result) => result[0].max ?? Number.MIN_SAFE_INTEGER);
+  `.then((result) => result[0].max ?? PG_MIN_SAFE_INTEGER);
 
   const migrations = listMigrationFiles().filter(
     (migration) =>
