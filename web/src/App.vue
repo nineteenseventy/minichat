@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import DynamicDialog from 'primevue/dynamicdialog';
 import { RouterView } from 'vue-router';
 </script>
 
 <template>
+  <DynamicDialog />
   <RouterView />
 </template>
 

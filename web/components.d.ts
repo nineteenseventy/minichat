@@ -8,7 +8,14 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppView: typeof import('./src/views/AppView.vue')['default']
+    'Message.component': typeof import('./src/components/Message.component.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    'User.component': typeof import('./src/components/User.component.vue')['default']
+    'UserAvatar.component': typeof import('./src/components/userAvatar.component.vue')['default']
+    'UserPicture.component': typeof import('./src/components/UserPicture.component.vue')['default']
+    'UserPictureOnlineStatus.component': typeof import('./src/components/UserPictureOnlineStatus.component.vue')['default']
+    'UserProfile.component': typeof import('./src/components/UserProfile.component.vue')['default']
+    'UserProfile.dialog': typeof import('./src/components/UserProfile.dialog.vue')['default']
   }
 }

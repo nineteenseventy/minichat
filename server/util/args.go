@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"fmt"
@@ -49,6 +49,8 @@ type Args struct {
 	// Auth0
 	Auth0Domain   string   `arg:"--auth0-domain,required,env:MINICHAT_AUTH0_DOMAIN" help:"Auth0 domain"`
 	Auth0Audience []string `arg:"--auth0-audience,required,env:MINICHAT_AUTH0_AUDIENCE" help:"Auth0 audience"`
+	// CDN URL
+	CdnUrl string `arg:"--cdn-url,required,env:MINICHAT_CDN_URL" help:"CDN URL"`
 }
 
 var parsedArgs bool
