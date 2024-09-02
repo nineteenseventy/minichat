@@ -17,9 +17,11 @@ import (
 	"github.com/nineteenseventy/minichat/core/database"
 	"github.com/nineteenseventy/minichat/core/http/middleware"
 	"github.com/nineteenseventy/minichat/core/logging"
+	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
 
-func initDatabase(args Args) {
+func initDatabase() {
+	args := serverutil.GetArgs()
 	databaseConfig := database.DatabaseConfig{
 		Host:     args.PostgresHost,
 		Port:     args.PostgresPort,
@@ -34,7 +36,8 @@ func initDatabase(args Args) {
 	}
 }
 
-func initRedis(args Args) {
+func initRedis() {
+	args := serverutil.GetArgs()
 	redisConfig := redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", args.RedisHost, args.RedisPort),
 		Password: args.RedisPassword,
@@ -46,7 +49,8 @@ func initRedis(args Args) {
 	}
 }
 
-func initMinio(args Args) {
+func initMinio() {
+	args := serverutil.GetArgs()
 	minioConfig := core.MinioConfig{
 		Endpoint:  args.MinioEndpoint,
 		Port:      args.MinioPort,
@@ -60,14 +64,16 @@ func initMinio(args Args) {
 	}
 }
 
-func initZerolog(args Args) {
+func initZerolog() {
+	args := serverutil.GetArgs()
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	if args.Format.Format == FormatArgPretty {
+	if args.Format.Format == serverutil.FormatArgPretty {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 }
 
-func parseHost(args Args) string {
+func parseHost() string {
+	args := serverutil.GetArgs()
 	host := args.Host
 	if args.Host == "*" {
 		host = ""
@@ -81,21 +87,19 @@ func main() {
 		log.Warn().Err(err).Msg("Failed to load .env file")
 	}
 
-	args := GetArgs()
-
-	initZerolog(args)
+	initZerolog()
 	logger := logging.GetLogger("server")
 
-	initDatabase(args)
-	initRedis(args)
-	initMinio(args)
+	initDatabase()
+	initRedis()
+	initMinio()
 
 	r := chi.NewRouter()
 	r.Use(middleware.CorsMiddleware())
 	r.Mount("/api", ApiRouter())
 	r.Mount("/", HealthRouter())
 
-	host := parseHost(args)
+	host := parseHost()
 	logger.Info().Str("host", host).Msg("Starting server")
 	err = http.ListenAndServe(host, r)
 	if err != nil {

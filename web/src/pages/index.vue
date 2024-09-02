@@ -1,15 +1,26 @@
 <script setup lang="ts">
-import { useApi } from '@/composables/useApi';
-import { useAuth0 } from '@auth0/auth0-vue';
-const { user } = useAuth0();
+import MessageComponent from '@/components/Message.component.vue';
+import type { Message } from '@/interfaces/message.interface';
+import type { User } from '@/interfaces/user.interface';
+import { useUserStore } from '@/stores/user.store';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const { data } = useApi('/users').json();
+const me: User = {
+  id: '28585f72-0eb6-49ab-97ec-b7453a0f526b',
+  username: 'MeroFuruya',
+  picture: 'https://avatars.githubusercontent.com/u/29742437?v=4',
+};
+
+const userStore = useUserStore();
+userStore.setUser(me);
+
+const message: Message = {
+  author: me,
+  content: 'Hello, World!',
+  id: '1',
+  timestamp: new Date().toISOString(),
+};
 </script>
 
 <template>
-  <div>{{ user?.email }}</div>
-  <ul>
-    <li v-for="user in data.data" :key="user.id">{{ user.name }}</li>
-  </ul>
+  <MessageComponent :message="message" />
 </template>
