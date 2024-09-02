@@ -7,7 +7,7 @@ import { useUserStore } from '@/stores/user.store';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatus.component.vue';
-import SpinnerComponent from './spinner.component.vue';
+import SpinnerComponent from './Spinner.component.vue';
 
 interface DialogRef {
   value: DynamicDialogInstance;
