@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@auth0/auth0-vue": "^2.3.3",
-    "@primevue/themes": "^4.0.5",
+    "@primevue/themes": "^4.1.0",
     "@vueuse/core": "^11.0.3",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
