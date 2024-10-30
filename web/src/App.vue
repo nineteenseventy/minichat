@@ -4,7 +4,7 @@ import DynamicDialog from 'primevue/dynamicdialog';
 
 <template>
   <DynamicDialog />
-  <RouterView />
+  <div id="RouterView"><RouterView /></div>
 </template>
 
 <style scoped>
