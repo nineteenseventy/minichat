@@ -16,7 +16,6 @@ import (
 type ChannelsResponse struct {
 	Public  []minichat.ChannelPublic  `json:"public"`
 	Private []minichat.ChannelPrivate `json:"private"`
-	Direct  []minichat.ChannelDirect  `json:"direct"`
 }
 
 func getChannelsPublic(ctx context.Context, buffer *[]minichat.ChannelPublic) error {
