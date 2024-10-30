@@ -27,7 +27,7 @@ func parsePictureUrl(picture sql.NullString) *string {
 	return nil
 }
 
-func UserMiddleware() func(http.Handler) http.Handler {
+func UserMiddlewareFactory() func(http.Handler) http.Handler {
 	conn := database.GetDatabase()
 	logger := logging.GetLogger("http.middleware.user")
 

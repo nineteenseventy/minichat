@@ -24,7 +24,7 @@ func getMiddleware() []func(http.Handler) http.Handler {
 			Domain:   args.Auth0Domain,
 			Audience: args.Auth0Audience,
 		}),
-		serverMiddleware.UserMiddleware(),
+		serverMiddleware.UserMiddlewareFactory(),
 	}
 }
 
