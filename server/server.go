@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
@@ -73,6 +74,26 @@ func initZerolog() {
 	}
 }
 
+func debugRoute(prefix string, route chi.Routes) {
+	for _, method := range route.Routes() {
+		patternIsClean := !strings.HasSuffix(method.Pattern, "/*")
+		var cleanPattern string
+		if patternIsClean {
+			cleanPattern = method.Pattern
+		} else {
+			cleanPattern = strings.TrimSuffix(method.Pattern, "/*")
+		}
+		path := fmt.Sprintf("%s%s", prefix, cleanPattern)
+
+		if patternIsClean {
+			log.Debug().Str("path", path).Msg("Registered route")
+		}
+		if method.SubRoutes != nil {
+			debugRoute(path, method.SubRoutes)
+		}
+	}
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -90,6 +111,9 @@ func main() {
 	router.Use(middleware.CorsMiddlewareFactory())
 	router.Mount("/api", ApiRouter())
 	router.Mount("/", HealthRouter())
+
+	// debug route
+	debugRoute("", router)
 
 	args := serverutil.GetArgs()
 

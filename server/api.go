@@ -10,9 +10,10 @@ import (
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
 
-func getRoutes() []func() chi.Router {
-	return [](func() chi.Router){
+func getRoutes() []func() (string, chi.Router) {
+	return [](func() (string, chi.Router)){
 		api.UserRouter,
+		api.ChannelRouter,
 	}
 }
 
@@ -33,8 +34,14 @@ func ApiRouter() chi.Router {
 	for _, middleware := range getMiddleware() {
 		router.Use(middleware)
 	}
-	for _, route := range getRoutes() {
-		router.Mount("/", route())
-	}
+	// for _, route := range getRoutes() {
+	// 	prefix, router := route()
+	// 	fmt.Println(prefix, router)
+	// 	router.Mount(prefix, router)
+	// }
+	_, lmao := api.UserRouter()
+	router.Mount("/users", lmao)
+	_, lmao = api.ChannelRouter()
+	router.Mount("/channels", lmao)
 	return router
 }
