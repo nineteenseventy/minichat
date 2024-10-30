@@ -6,7 +6,8 @@ export default function (sql: postgres.Sql) {
       id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
       author_id uuid not null,
       channel_id uuid not null,
-      content text not null
+      content text not null,
+      timestamp timestamptz not null DEFAULT now()
     )
   `;
 }

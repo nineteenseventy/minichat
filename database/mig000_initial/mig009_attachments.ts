@@ -5,7 +5,7 @@ export default function (sql: postgres.Sql) {
     create table minichat.attachments (
       id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
       message_id uuid not null,
-      filename varchar(255) not null,
+      filename varchar(256) not null,
       type varchar(64) not null
     )
   `;
