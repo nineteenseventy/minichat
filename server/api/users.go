@@ -25,15 +25,15 @@ func parsePictureUrl(picture sql.NullString) *string {
 	return nil
 }
 
-func usersHandler(writer http.ResponseWriter, request *http.Request) {
+func getUsersHandler(writer http.ResponseWriter, request *http.Request) {
 	conn := database.GetDatabase()
 	rows, err := conn.Query(
 		request.Context(),
 		`SELECT
-					id,
-					username,
-					picture
-				FROM minichat.users`,
+			id,
+			username,
+			picture
+		FROM minichat.users`,
 	)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
@@ -79,11 +79,11 @@ func getUserHandler(writer http.ResponseWriter, request *http.Request) {
 	err := conn.QueryRow(
 		request.Context(),
 		`SELECT
-					id,
-					username,
-					picture
-				FROM minichat.users
-				WHERE id = $1`,
+			id,
+			username,
+			picture
+		FROM minichat.users
+		WHERE id = $1`,
 		id,
 	).Scan(&id, &username, &picture)
 
@@ -116,13 +116,13 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	err := conn.QueryRow(
 		request.Context(),
 		`SELECT
-					id,
-					username,
-					bio,
-					picture,
-					color
-				FROM minichat.users
-				WHERE id = $1`,
+			id,
+			username,
+			bio,
+			picture,
+			color
+		FROM minichat.users
+		WHERE id = $1`,
 		id,
 	).Scan(&id, &username, &bio, &picture, &color)
 
@@ -144,7 +144,7 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 
 func UserRouter() chi.Router {
 	router := chi.NewRouter()
-	router.Get("/users", usersHandler)
+	router.Get("/users", getUsersHandler)
 	router.Get("/users/me", getMeHandler)
 	router.Get("/users/{id}", getUserHandler)
 	router.Get("/users/me/profile", getMeProfileHandler)
