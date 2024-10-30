@@ -17,11 +17,6 @@ interface Migration {
   filename: string;
 }
 
-let logNotice = false;
-function onNotice(notice: postgres.Notice) {
-  if (logNotice) console.log(notice);
-}
-
 function filterAndSortMigrationNames(names: string[]) {
   return names
     .reduce<{ name: string; number: number }[]>((acc, name) => {
@@ -108,8 +103,9 @@ async function ensureMigrationsTable(sql: postgres.Sql) {
 
 async function main() {
   dotenv.config();
+  let logNotice = false;
   const sql = postgres({
-    onnotice: onNotice,
+    onnotice: (n) => (logNotice ? console.log(n) : undefined),
   });
   await ensureMigrationsTable(sql);
   logNotice = true;
