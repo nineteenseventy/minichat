@@ -10,10 +10,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
-	"github.com/minio/minio-go/v7"
-	"github.com/nineteenseventy/minichat/core"
+	miniolib "github.com/minio/minio-go/v7"
 	"github.com/nineteenseventy/minichat/core/http/middleware"
 	"github.com/nineteenseventy/minichat/core/logging"
+	"github.com/nineteenseventy/minichat/core/minio"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -35,14 +35,14 @@ func initZerolog(args Args) {
 }
 
 func initMinio(args Args) {
-	minioConfig := core.MinioConfig{
+	minioConfig := minio.MinioConfig{
 		Endpoint:  args.MinioEndpoint,
 		Port:      args.MinioPort,
 		AccessKey: args.MinioAccessKey,
 		SecretKey: args.MinioSecretKey,
 		UseSSL:    args.MinioUseSSL,
 	}
-	err := core.InitMinio(context.Background(), minioConfig)
+	err := minio.InitMinio(context.Background(), minioConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -72,7 +72,7 @@ func serve(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	minioClient := core.GetMinio()
+	minioClient := minio.GetMinio()
 
 	bucketExists, err := minioClient.BucketExists(request.Context(), bucket)
 
@@ -86,13 +86,13 @@ func serve(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	objectInfo, err := minioClient.StatObject(request.Context(), bucket, object, minio.StatObjectOptions{})
+	objectInfo, err := minioClient.StatObject(request.Context(), bucket, object, miniolib.StatObjectOptions{})
 	if err != nil {
 		http.Error(w, "Object not found", http.StatusNotFound)
 		return
 	}
 
-	objectReader, err := minioClient.GetObject(request.Context(), bucket, object, minio.GetObjectOptions{})
+	objectReader, err := minioClient.GetObject(request.Context(), bucket, object, miniolib.GetObjectOptions{})
 	if err != nil {
 		http.Error(w, "Error getting object", http.StatusInternalServerError)
 		return
@@ -123,8 +123,8 @@ func main() {
 	initMinio(args)
 
 	r := chi.NewRouter()
-	r.Use(middleware.LoggerMiddleware())
-	r.Use(middleware.CorsMiddleware())
+	r.Use(middleware.LoggerMiddlewareFactory())
+	r.Use(middleware.CorsMiddlewareFactory())
 	r.Get("/{bucket}/*", serve)
 
 	host := parseHost(args)

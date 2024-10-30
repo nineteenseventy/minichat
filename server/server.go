@@ -12,11 +12,11 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/nineteenseventy/minichat/core"
 	"github.com/nineteenseventy/minichat/core/cache"
 	"github.com/nineteenseventy/minichat/core/database"
 	"github.com/nineteenseventy/minichat/core/http/middleware"
 	"github.com/nineteenseventy/minichat/core/logging"
+	"github.com/nineteenseventy/minichat/core/minio"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
 
@@ -51,14 +51,14 @@ func initRedis() {
 
 func initMinio() {
 	args := serverutil.GetArgs()
-	minioConfig := core.MinioConfig{
+	minioConfig := minio.MinioConfig{
 		Endpoint:  args.MinioEndpoint,
 		Port:      args.MinioPort,
 		AccessKey: args.MinioAccessKey,
 		SecretKey: args.MinioSecretKey,
 		UseSSL:    args.MinioUseSSL,
 	}
-	err := core.InitMinio(context.Background(), minioConfig)
+	err := minio.InitMinio(context.Background(), minioConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -95,7 +95,7 @@ func main() {
 	initMinio()
 
 	r := chi.NewRouter()
-	r.Use(middleware.CorsMiddleware())
+	r.Use(middleware.CorsMiddlewareFactory())
 	r.Mount("/api", ApiRouter())
 	r.Mount("/", HealthRouter())
 

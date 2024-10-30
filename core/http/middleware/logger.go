@@ -18,7 +18,7 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
 	lrw.ResponseWriter.WriteHeader(code)
 }
 
-func LoggerMiddleware() func(http.Handler) http.Handler {
+func LoggerMiddlewareFactory() func(http.Handler) http.Handler {
 	logger := logging.GetLogger("http.middleware.logger")
 
 	return func(next http.Handler) http.Handler {

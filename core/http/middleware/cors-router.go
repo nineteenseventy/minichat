@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
-func CorsMiddleware() func(next http.Handler) http.Handler {
+func CorsMiddlewareFactory() func(next http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
 		AllowedOrigins: []string{"https://*", "http://*"},

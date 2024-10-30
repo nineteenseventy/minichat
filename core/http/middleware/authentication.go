@@ -31,7 +31,7 @@ func cleanupUrl(urlString string) string {
 	return urlString
 }
 
-func AuthenticationMiddleware(options AuthenticationMiddlewareOptions) func(http.Handler) http.Handler {
+func AuthenticationMiddlewareFactory(options AuthenticationMiddlewareOptions) func(http.Handler) http.Handler {
 	logger := logging.GetLogger("http.middleware.authentication")
 	issuerString := fmt.Sprintf("https://%s", options.Domain)
 	issuerUrl, err := url.Parse(issuerString)
