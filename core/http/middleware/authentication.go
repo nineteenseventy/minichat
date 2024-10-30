@@ -17,8 +17,8 @@ type AuthenticationMiddlewareOptions struct {
 	Audience []string
 }
 
-func errorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	http.Error(w, err.Error(), http.StatusUnauthorized)
+func errorHandler(writer http.ResponseWriter, reader *http.Request, err error) {
+	http.Error(writer, err.Error(), http.StatusUnauthorized)
 }
 
 func cleanupUrl(urlString string) string {
@@ -31,7 +31,7 @@ func cleanupUrl(urlString string) string {
 	return urlString
 }
 
-func AuthenticationMiddleware(options AuthenticationMiddlewareOptions) func(http.Handler) http.Handler {
+func AuthenticationMiddlewareFactory(options AuthenticationMiddlewareOptions) func(http.Handler) http.Handler {
 	logger := logging.GetLogger("http.middleware.authentication")
 	issuerString := fmt.Sprintf("https://%s", options.Domain)
 	issuerUrl, err := url.Parse(issuerString)

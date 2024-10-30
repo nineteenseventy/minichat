@@ -11,13 +11,13 @@ type HealthMessage struct {
 	Status string `json:"status"`
 }
 
-func healthHandler(w http.ResponseWriter, r *http.Request) {
+func healthHandler(writer http.ResponseWriter, request *http.Request) {
 	msg := HealthMessage{Status: "ok"}
-	util.JSONResponse(w, msg)
+	util.JSONResponse(writer, msg)
 }
 
 func HealthRouter() chi.Router {
-	r := chi.NewRouter()
-	r.Get("/health", healthHandler)
-	return r
+	router := chi.NewRouter()
+	router.Get("/health", healthHandler)
+	return router
 }

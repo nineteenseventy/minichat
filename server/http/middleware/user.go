@@ -27,16 +27,16 @@ func parsePictureUrl(picture sql.NullString) *string {
 	return nil
 }
 
-func UserMiddleware() func(http.Handler) http.Handler {
+func UserMiddlewareFactory() func(http.Handler) http.Handler {
 	conn := database.GetDatabase()
 	logger := logging.GetLogger("http.middleware.user")
 
 	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			claims, ok := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			claims, ok := request.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 
 			if !ok {
-				http.Error(w, "Invalid token", http.StatusUnauthorized)
+				http.Error(writer, "Invalid token", http.StatusUnauthorized)
 				return
 			}
 
@@ -44,7 +44,7 @@ func UserMiddleware() func(http.Handler) http.Handler {
 			var bio, picture, color sql.NullString
 
 			err := conn.QueryRow(
-				r.Context(),
+				request.Context(),
 				`SELECT
 					id,
 					username,
@@ -58,7 +58,7 @@ func UserMiddleware() func(http.Handler) http.Handler {
 
 			if err != nil {
 				logger.Error().Err(err).Msg("Failed to get user record")
-				http.Error(w, "User not found", http.StatusNotFound)
+				http.Error(writer, "User not found", http.StatusNotFound)
 				return
 			}
 
@@ -69,7 +69,7 @@ func UserMiddleware() func(http.Handler) http.Handler {
 				Bio:      util.ParseSqlString(bio),
 				Color:    util.ParseSqlString(color),
 			}
-			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), minichat.UserProfileContextKey{}, user)))
+			next.ServeHTTP(writer, request.WithContext(context.WithValue(request.Context(), minichat.UserProfileContextKey{}, user)))
 		})
 	}
 

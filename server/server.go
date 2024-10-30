@@ -12,11 +12,12 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/nineteenseventy/minichat/core"
 	"github.com/nineteenseventy/minichat/core/cache"
 	"github.com/nineteenseventy/minichat/core/database"
 	"github.com/nineteenseventy/minichat/core/http/middleware"
+	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/logging"
+	"github.com/nineteenseventy/minichat/core/minio"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
 
@@ -51,14 +52,14 @@ func initRedis() {
 
 func initMinio() {
 	args := serverutil.GetArgs()
-	minioConfig := core.MinioConfig{
+	minioConfig := minio.MinioConfig{
 		Endpoint:  args.MinioEndpoint,
 		Port:      args.MinioPort,
 		AccessKey: args.MinioAccessKey,
 		SecretKey: args.MinioSecretKey,
 		UseSSL:    args.MinioUseSSL,
 	}
-	err := core.InitMinio(context.Background(), minioConfig)
+	err := minio.InitMinio(context.Background(), minioConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -70,15 +71,6 @@ func initZerolog() {
 	if args.Format.Format == serverutil.FormatArgPretty {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
-}
-
-func parseHost() string {
-	args := serverutil.GetArgs()
-	host := args.Host
-	if args.Host == "*" {
-		host = ""
-	}
-	return fmt.Sprintf("%s:%d", host, args.Port)
 }
 
 func main() {
@@ -94,14 +86,16 @@ func main() {
 	initRedis()
 	initMinio()
 
-	r := chi.NewRouter()
-	r.Use(middleware.CorsMiddleware())
-	r.Mount("/api", ApiRouter())
-	r.Mount("/", HealthRouter())
+	router := chi.NewRouter()
+	router.Use(middleware.CorsMiddlewareFactory())
+	router.Mount("/api", ApiRouter())
+	router.Mount("/", HealthRouter())
 
-	host := parseHost()
+	args := serverutil.GetArgs()
+
+	host := httputil.ParseHost(args.Host, args.Port)
 	logger.Info().Str("host", host).Msg("Starting server")
-	err = http.ListenAndServe(host, r)
+	err = http.ListenAndServe(host, router)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to start server")
 	}

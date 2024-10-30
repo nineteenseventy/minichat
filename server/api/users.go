@@ -25,18 +25,18 @@ func parsePictureUrl(picture sql.NullString) *string {
 	return nil
 }
 
-func usersHandler(w http.ResponseWriter, r *http.Request) {
+func getUsersHandler(writer http.ResponseWriter, request *http.Request) {
 	conn := database.GetDatabase()
 	rows, err := conn.Query(
-		r.Context(),
+		request.Context(),
 		`SELECT
-					id,
-					username,
-					picture
-				FROM minichat.users`,
+			id,
+			username,
+			picture
+		FROM minichat.users`,
 	)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -47,7 +47,7 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 		var picture sql.NullString
 		err := rows.Scan(&id, &username, &picture)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		user := minichat.User{
@@ -57,38 +57,38 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		users = append(users, user)
 	}
-	util.JSONResponse(w, util.NewResult(users))
+	util.JSONResponse(writer, util.NewResult(users))
 }
 
-func getMeHandler(w http.ResponseWriter, r *http.Request) {
-	userProfile := r.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
+func getMeHandler(writer http.ResponseWriter, request *http.Request) {
+	userProfile := request.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
 	user := minichat.User{
 		ID:       userProfile.ID,
 		Username: userProfile.Username,
 	}
-	util.JSONResponse(w, user)
+	util.JSONResponse(writer, user)
 }
 
-func getUserHandler(w http.ResponseWriter, r *http.Request) {
+func getUserHandler(writer http.ResponseWriter, request *http.Request) {
 	conn := database.GetDatabase()
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(request, "id")
 
 	var username string
 	var picture sql.NullString
 
 	err := conn.QueryRow(
-		r.Context(),
+		request.Context(),
 		`SELECT
-					id,
-					username,
-					picture
-				FROM minichat.users
-				WHERE id = $1`,
+			id,
+			username,
+			picture
+		FROM minichat.users
+		WHERE id = $1`,
 		id,
 	).Scan(&id, &username, &picture)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(writer, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -98,36 +98,36 @@ func getUserHandler(w http.ResponseWriter, r *http.Request) {
 		Picture:  parsePictureUrl(picture),
 	}
 
-	util.JSONResponse(w, user)
+	util.JSONResponse(writer, user)
 }
 
-func getMeProfileHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
-	util.JSONResponse(w, user)
+func getMeProfileHandler(writer http.ResponseWriter, request *http.Request) {
+	user := request.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
+	util.JSONResponse(writer, user)
 }
 
-func getUserProfileHandler(w http.ResponseWriter, r *http.Request) {
+func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	conn := database.GetDatabase()
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(request, "id")
 
 	var username string
 	var bio, picture, color sql.NullString
 
 	err := conn.QueryRow(
-		r.Context(),
+		request.Context(),
 		`SELECT
-					id,
-					username,
-					bio,
-					picture,
-					color
-				FROM minichat.users
-				WHERE id = $1`,
+			id,
+			username,
+			bio,
+			picture,
+			color
+		FROM minichat.users
+		WHERE id = $1`,
 		id,
 	).Scan(&id, &username, &bio, &picture, &color)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(writer, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -139,15 +139,15 @@ func getUserProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Color:    util.ParseSqlString(color),
 	}
 
-	util.JSONResponse(w, user)
+	util.JSONResponse(writer, user)
 }
 
 func UserRouter() chi.Router {
-	r := chi.NewRouter()
-	r.Get("/users", usersHandler)
-	r.Get("/users/me", getMeHandler)
-	r.Get("/users/{id}", getUserHandler)
-	r.Get("/users/me/profile", getMeProfileHandler)
-	r.Get("/users/{id}/profile", getUserProfileHandler)
-	return r
+	router := chi.NewRouter()
+	router.Get("/users", getUsersHandler)
+	router.Get("/users/me", getMeHandler)
+	router.Get("/users/{id}", getUserHandler)
+	router.Get("/users/me/profile", getMeProfileHandler)
+	router.Get("/users/{id}/profile", getUserProfileHandler)
+	return router
 }

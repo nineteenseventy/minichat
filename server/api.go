@@ -19,22 +19,22 @@ func getRoutes() []func() chi.Router {
 func getMiddleware() []func(http.Handler) http.Handler {
 	args := serverutil.GetArgs()
 	return []func(http.Handler) http.Handler{
-		middleware.LoggerMiddleware(),
-		middleware.AuthenticationMiddleware(middleware.AuthenticationMiddlewareOptions{
+		middleware.LoggerMiddlewareFactory(),
+		middleware.AuthenticationMiddlewareFactory(middleware.AuthenticationMiddlewareOptions{
 			Domain:   args.Auth0Domain,
 			Audience: args.Auth0Audience,
 		}),
-		serverMiddleware.UserMiddleware(),
+		serverMiddleware.UserMiddlewareFactory(),
 	}
 }
 
 func ApiRouter() chi.Router {
-	r := chi.NewRouter()
+	router := chi.NewRouter()
 	for _, middleware := range getMiddleware() {
-		r.Use(middleware)
+		router.Use(middleware)
 	}
 	for _, route := range getRoutes() {
-		r.Mount("/", route())
+		router.Mount("/", route())
 	}
-	return r
+	return router
 }

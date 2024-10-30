@@ -12,6 +12,10 @@
   // icons
   "material-icon-theme.folders.associations": {
     "composables": "functions",
+    "minioserve": "content",
+  },
+  "material-icon-theme.files.associations": {
+    ".tool-versions": "settings",
   },
   "typescript.tsdk": "node_modules/typescript/lib",
 }
