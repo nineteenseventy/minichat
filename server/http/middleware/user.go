@@ -14,19 +14,6 @@ import (
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
 
-func parsePictureUrl(picture sql.NullString) *string {
-	logger := logging.GetLogger("http.middleware.user.parsePictureUrl")
-	if picture.Valid {
-		pictureUrl, err := serverutil.GetCdnUrl("profile", picture.String)
-		if err != nil {
-			logger.Error().Err(err).Msg("failed to get picture url")
-			return nil
-		}
-		return &pictureUrl
-	}
-	return nil
-}
-
 func UserMiddlewareFactory() func(http.Handler) http.Handler {
 	conn := database.GetDatabase()
 	logger := logging.GetLogger("http.middleware.user")
@@ -65,7 +52,7 @@ func UserMiddlewareFactory() func(http.Handler) http.Handler {
 			user := minichat.UserProfile{
 				ID:       id,
 				Username: username,
-				Picture:  parsePictureUrl(picture),
+				Picture:  serverutil.ParseUserPictureUrl(picture),
 				Bio:      util.ParseSqlString(bio),
 				Color:    util.ParseSqlString(color),
 			}
