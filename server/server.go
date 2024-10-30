@@ -15,6 +15,7 @@ import (
 	"github.com/nineteenseventy/minichat/core/cache"
 	"github.com/nineteenseventy/minichat/core/database"
 	"github.com/nineteenseventy/minichat/core/http/middleware"
+	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/logging"
 	"github.com/nineteenseventy/minichat/core/minio"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
@@ -72,15 +73,6 @@ func initZerolog() {
 	}
 }
 
-func parseHost() string {
-	args := serverutil.GetArgs()
-	host := args.Host
-	if args.Host == "*" {
-		host = ""
-	}
-	return fmt.Sprintf("%s:%d", host, args.Port)
-}
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -99,7 +91,9 @@ func main() {
 	router.Mount("/api", ApiRouter())
 	router.Mount("/", HealthRouter())
 
-	host := parseHost()
+	args := serverutil.GetArgs()
+
+	host := httputil.ParseHost(args.Host, args.Port)
 	logger.Info().Str("host", host).Msg("Starting server")
 	err = http.ListenAndServe(host, router)
 	if err != nil {

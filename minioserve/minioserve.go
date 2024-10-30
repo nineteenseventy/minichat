@@ -12,6 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	miniolib "github.com/minio/minio-go/v7"
 	"github.com/nineteenseventy/minichat/core/http/middleware"
+	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/logging"
 	"github.com/nineteenseventy/minichat/core/minio"
 	"github.com/rs/zerolog"
@@ -46,14 +47,6 @@ func initMinio(args Args) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func parseHost(args Args) string {
-	host := args.Host
-	if args.Host == "*" {
-		host = ""
-	}
-	return fmt.Sprintf("%s:%d", host, args.Port)
 }
 
 func serve(writer http.ResponseWriter, request *http.Request) {
@@ -127,7 +120,7 @@ func main() {
 	router.Use(middleware.CorsMiddlewareFactory())
 	router.Get("/{bucket}/*", serve)
 
-	host := parseHost(args)
+	host := httputil.ParseHost(args.Host, args.Port)
 	logger.Info().Str("host", host).Msg("Starting server")
 	err = http.ListenAndServe(host, router)
 	if err != nil {
