@@ -5,8 +5,7 @@ export default function (sql: postgres.Sql) {
     create table minichat.channels_public (
       id uuid PRIMARY KEY,
       title varchar(256) not null,
-      description text,
-      created_at timestamp not null default now()
+      description text
     )
   `;
 }
