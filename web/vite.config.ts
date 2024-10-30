@@ -4,8 +4,6 @@ import { defineConfig } from 'vite';
 import VueRouter from 'unplugin-vue-router/vite';
 import vue from '@vitejs/plugin-vue';
 import vueDevTools from 'vite-plugin-vue-devtools';
-import Components from 'unplugin-vue-components/vite';
-import { PrimeVueResolver } from 'unplugin-vue-components/resolvers';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,11 +14,6 @@ export default defineConfig({
     }),
     vue(),
     vueDevTools(),
-    Components({
-      dirs: ['src/components', 'src/views'],
-      resolvers: [PrimeVueResolver()],
-      directoryAsNamespace: true,
-    }),
   ],
   envDir: '../',
   build: {
