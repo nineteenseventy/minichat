@@ -17,8 +17,8 @@ type AuthenticationMiddlewareOptions struct {
 	Audience []string
 }
 
-func errorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	http.Error(w, err.Error(), http.StatusUnauthorized)
+func errorHandler(writer http.ResponseWriter, reader *http.Request, err error) {
+	http.Error(writer, err.Error(), http.StatusUnauthorized)
 }
 
 func cleanupUrl(urlString string) string {

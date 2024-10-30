@@ -22,35 +22,35 @@ func LoggerMiddlewareFactory() func(http.Handler) http.Handler {
 	logger := logging.GetLogger("http.middleware.logger")
 
 	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			t1 := time.Now()
 
 			lrw := loggingResponseWriter{
-				ResponseWriter: w,
+				ResponseWriter: writer,
 				statusCode:     http.StatusOK,
 			}
 
 			defer func() {
 				scheme := "http"
-				if r.TLS != nil {
+				if request.TLS != nil {
 					scheme = "https"
 				}
 				logger.Debug().
-					Str("from", r.RemoteAddr).
+					Str("from", request.RemoteAddr).
 					Int("status", lrw.statusCode).
-					Str("size", w.Header().Get("Content-Length")).
-					Str("method", r.Method).
-					Str("proto", r.Proto).
+					Str("size", writer.Header().Get("Content-Length")).
+					Str("method", request.Method).
+					Str("proto", request.Proto).
 					TimeDiff("time", time.Now(), t1).
 					Msg(fmt.Sprintf(
 						"%s://%s%s",
 						scheme,
-						r.Host,
-						r.RequestURI,
+						request.Host,
+						request.RequestURI,
 					))
 			}()
 
-			next.ServeHTTP(&lrw, r)
+			next.ServeHTTP(&lrw, request)
 		})
 	}
 }

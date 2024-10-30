@@ -94,14 +94,14 @@ func main() {
 	initRedis()
 	initMinio()
 
-	r := chi.NewRouter()
-	r.Use(middleware.CorsMiddlewareFactory())
-	r.Mount("/api", ApiRouter())
-	r.Mount("/", HealthRouter())
+	router := chi.NewRouter()
+	router.Use(middleware.CorsMiddlewareFactory())
+	router.Mount("/api", ApiRouter())
+	router.Mount("/", HealthRouter())
 
 	host := parseHost()
 	logger.Info().Str("host", host).Msg("Starting server")
-	err = http.ListenAndServe(host, r)
+	err = http.ListenAndServe(host, router)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to start server")
 	}

@@ -56,19 +56,19 @@ func parseHost(args Args) string {
 	return fmt.Sprintf("%s:%d", host, args.Port)
 }
 
-func serve(w http.ResponseWriter, request *http.Request) {
+func serve(writer http.ResponseWriter, request *http.Request) {
 	bucket := chi.URLParam(request, "bucket")
 	object := chi.URLParam(request, "*")
 
 	args := GetArgs()
 
 	if !ContainsCaseInsensitive(args.AllowedBucketNames, bucket) {
-		http.Error(w, "Bucket not allowed", http.StatusForbidden)
+		http.Error(writer, "Bucket is not allowed or does not exist", http.StatusNotFound)
 		return
 	}
 
 	if object == "" {
-		http.Error(w, "Object not specified", http.StatusBadRequest)
+		http.Error(writer, "Object not specified", http.StatusBadRequest)
 		return
 	}
 
@@ -77,36 +77,36 @@ func serve(w http.ResponseWriter, request *http.Request) {
 	bucketExists, err := minioClient.BucketExists(request.Context(), bucket)
 
 	if err != nil {
-		http.Error(w, "Object not found", http.StatusInternalServerError)
+		http.Error(writer, "Error checking bucket", http.StatusInternalServerError)
 		return
 	}
 
 	if !bucketExists {
-		http.Error(w, "Object not found", http.StatusNotFound)
+		http.Error(writer, "Bucket does not exist", http.StatusNotFound)
 		return
 	}
 
 	objectInfo, err := minioClient.StatObject(request.Context(), bucket, object, miniolib.StatObjectOptions{})
 	if err != nil {
-		http.Error(w, "Object not found", http.StatusNotFound)
+		http.Error(writer, "Object not found", http.StatusNotFound)
 		return
 	}
 
 	objectReader, err := minioClient.GetObject(request.Context(), bucket, object, miniolib.GetObjectOptions{})
 	if err != nil {
-		http.Error(w, "Error getting object", http.StatusInternalServerError)
+		http.Error(writer, "Error getting object", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", objectInfo.ContentType)
-	w.Header().Set("Last-Modified", objectInfo.LastModified.Format(http.TimeFormat))
+	writer.Header().Set("Content-Type", objectInfo.ContentType)
+	writer.Header().Set("Last-Modified", objectInfo.LastModified.Format(http.TimeFormat))
 
-	written, err := io.Copy(w, objectReader)
+	written, err := io.Copy(writer, objectReader)
 	if err != nil {
-		http.Error(w, "Error reading object", http.StatusInternalServerError)
+		http.Error(writer, "Error reading object", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", written))
+	writer.Header().Set("Content-Length", fmt.Sprintf("%d", written))
 }
 
 func main() {
@@ -122,14 +122,14 @@ func main() {
 
 	initMinio(args)
 
-	r := chi.NewRouter()
-	r.Use(middleware.LoggerMiddlewareFactory())
-	r.Use(middleware.CorsMiddlewareFactory())
-	r.Get("/{bucket}/*", serve)
+	router := chi.NewRouter()
+	router.Use(middleware.LoggerMiddlewareFactory())
+	router.Use(middleware.CorsMiddlewareFactory())
+	router.Get("/{bucket}/*", serve)
 
 	host := parseHost(args)
 	logger.Info().Str("host", host).Msg("Starting server")
-	err = http.ListenAndServe(host, r)
+	err = http.ListenAndServe(host, router)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to start server")
 	}

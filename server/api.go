@@ -29,12 +29,12 @@ func getMiddleware() []func(http.Handler) http.Handler {
 }
 
 func ApiRouter() chi.Router {
-	r := chi.NewRouter()
+	router := chi.NewRouter()
 	for _, middleware := range getMiddleware() {
-		r.Use(middleware)
+		router.Use(middleware)
 	}
 	for _, route := range getRoutes() {
-		r.Mount("/", route())
+		router.Mount("/", route())
 	}
-	return r
+	return router
 }

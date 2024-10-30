@@ -5,9 +5,9 @@ import (
 	"net/http"
 )
 
-func JSONRequest(r *http.Request, v interface{}) error {
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(v)
+func JSONRequest(request *http.Request, value interface{}) error {
+	decoder := json.NewDecoder(request.Body)
+	err := decoder.Decode(value)
 	if err != nil {
 		return err
 	}
