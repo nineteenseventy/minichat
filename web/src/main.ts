@@ -19,6 +19,9 @@ app.use(auth0);
 app.use(PrimeVue, {
   theme: {
     preset: Aura,
+    options: {
+      darkModeSelector: '.p-darkmode',
+    },
   },
 });
 app.use(DialogService);
