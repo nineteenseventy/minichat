@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,10 +10,10 @@ import (
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
 
-func getRoutes() []func() (string, chi.Router) {
-	return [](func() (string, chi.Router)){
-		api.UserRouter,
-		api.ChannelRouter,
+func getRoutes() []func(r chi.Router) {
+	return []func(r chi.Router){
+		api.UsersRouter,
+		api.ChannelsRouter,
 	}
 }
 
@@ -35,16 +34,8 @@ func ApiRouter() chi.Router {
 	for _, middleware := range getMiddleware() {
 		router.Use(middleware)
 	}
-	// for _, route := range getRoutes() {
-	// 	prefix, router := route()
-	// 	fmt.Println(prefix, router)
-	// 	router.Mount(prefix, router)
-	// }
-	e, lmao := api.UserRouter()
-	fmt.Println(e)
-	router.Mount(e, lmao)
-	e, lmao = api.ChannelRouter()
-	fmt.Println(e)
-	router.Mount(e, lmao)
+	for _, route := range getRoutes() {
+		router.Group(route)
+	}
 	return router
 }
