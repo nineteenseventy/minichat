@@ -2,7 +2,7 @@ import type postgres from 'postgres';
 
 export default function (sql: postgres.Sql) {
   return sql`
-    insert into minichat.channels_group_members (id, channel_id, user_id) values
+    insert into minichat.channels_members (id, channel_id, user_id) values
       (
         '1cf8524d-7006-4adc-ac67-bd67f3684c81'::uuid,
         '747bb027-6761-4571-bfe6-96ec3d866b5b'::uuid,

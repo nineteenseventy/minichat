@@ -2,41 +2,34 @@ import type postgres from 'postgres';
 
 export default function (sql: postgres.Sql) {
   return sql`
-    insert into minichat.channels_public (id, title, description) values
+    insert into minichat.channels (id, type) values
       (
         '4b7c7f2a-8d8d-4c4f-b4a7-6f5c7b1f5d3e'::uuid,
-        'General',
-        'General discussion'
+        'public'
       ),
       (
         'f7d7a4b5-8f8d-4c4f-b4a7-6f5c7b1f5d3e'::uuid,
-        'Random',
-        'Random discussion'
+        'public'
       ),
       (
         'b7d7a4b5-8f8d-4c4f-b4a7-6f5c7b1f5d3e'::uuid,
-        'Tech',
-        'Tech discussion'
+        'public'
       ),
       (
         'd7d7a4b5-8f8d-4c4f-b4a7-6f5c7b1f5d3e'::uuid,
-        'Music',
-        'Music discussion'
+        'public'
       ),
       (
         'e7d7a4b5-8f8d-4c4f-b4a7-6f5c7b1f5d3e'::uuid,
-        'Movies',
-        'Movies discussion'
+        'public'
       ),
       (
         'c7d7a4b5-8f8d-4c4f-b4a7-6f5c7b1f5d3e'::uuid,
-        'Books',
-        'Books discussion'
+        'public'
       ),
       (
         'a7d7a4b5-8f8d-4c4f-b4a7-6f5c7b1f5d3e'::uuid,
-        'Games',
-        'Games discussion'
+        'public'
       )
   `;
 }
