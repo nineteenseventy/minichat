@@ -6,7 +6,6 @@ type User struct {
 	Picture  *string `json:"profilePicture"`
 }
 
-type UserProfileContextKey struct{}
 type UserProfile struct {
 	ID       string  `json:"id"`
 	Username string  `json:"username"`

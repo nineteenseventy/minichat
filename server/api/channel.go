@@ -11,6 +11,7 @@ import (
 	"github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/minichat"
 	coreutil "github.com/nineteenseventy/minichat/core/util"
+	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
 
 type ChannelsResponse struct {
@@ -73,28 +74,31 @@ func getChannelsPrivate(ctx context.Context, userId string, buffer *[]minichat.C
 	rows, err := conn.Query(
 		ctx,
 		`
-		SELECT
+		select
 			"channel".id,
 			"channel"."type",
 			"channel".created_at,
-			COALESCE("direct_user".username, "group".title) AS "title"
-		FROM minichat.channels AS "channel"
-
-		-- group channels
-		LEFT JOIN minichat.channels_group AS "group"
-		ON "channel".id = "group".id AND "channel"."type" = 'group'
-		LEFT JOIN minichat.channels_group_members AS "group_member"
-		ON "channel".id = "group_member".channel_id AND "group_member".user_id = $1
+			coalesce("group".title, "direct_partner".username) as "title"
+		from minichat.channels AS "channel"
 		
-		-- direct channels
-		LEFT JOIN minichat.channels_direct AS "direct"
-		ON "channel".id = "direct".id AND "channel"."type" = 'direct' AND (
-			"direct".user1_id = $1 OR "direct".user2_id = $1
-		)
-		LEFT JOIN minichat.users AS "direct_user"
-		ON ("direct_user".id = "direct".user1_id AND "direct".user1_id != $1)
-		OR ("direct_user".id = "direct".user2_id AND "direct".user2_id != $1)
-		WHERE "channel"."type" = 'group' OR "channel"."type" = 'direct'
+		-- member
+		left join minichat.channels_members as "me_member"
+		on "channel".id = "me_member".channel_id 
+		
+		-- group
+		left join minichat.channels_group as "group"
+		on "group".id = "channel".id
+		
+		-- direct
+		left join minichat.channels_direct as "direct"
+		on "channel".id = "direct".id 
+
+		-- direct_partner
+		left join minichat.channels_members as "direct_partner_member"
+		on "direct".id = "direct_partner_member".channel_id and "direct_partner_member".id != "me_member".id
+		left join minichat.users as "direct_partner"
+		on "direct_partner_member".user_id = "direct_partner".id
+		WHERE ("channel"."type" = 'group' OR "channel"."type" = 'direct') and "me_member".user_id = $1
 		`,
 		userId,
 	)
@@ -118,10 +122,10 @@ func getChannelsPrivate(ctx context.Context, userId string, buffer *[]minichat.C
 
 func getChannelsPrivateHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
-	user := ctx.Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
+	userId := serverutil.GetUserIdFromContext(ctx)
 	var privateChannels []minichat.ChannelPrivate
 
-	err := getChannelsPrivate(ctx, user.ID, &privateChannels)
+	err := getChannelsPrivate(ctx, userId, &privateChannels)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
@@ -132,7 +136,7 @@ func getChannelsPrivateHandler(writer http.ResponseWriter, request *http.Request
 
 func getChannelsHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
-	user := ctx.Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
+	userId := serverutil.GetUserIdFromContext(ctx)
 	var channelsResponse ChannelsResponse
 
 	err := getChannelsPublic(ctx, &channelsResponse.Public)
@@ -141,7 +145,7 @@ func getChannelsHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = getChannelsPrivate(ctx, user.ID, &channelsResponse.Private)
+	err = getChannelsPrivate(ctx, userId, &channelsResponse.Private)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return

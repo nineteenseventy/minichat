@@ -9,13 +9,12 @@ import (
 	"github.com/nineteenseventy/minichat/core/database"
 	"github.com/nineteenseventy/minichat/core/minichat"
 	coreutil "github.com/nineteenseventy/minichat/core/util"
-	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
 
 func getGroupChannelHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
-	user := serverutil.GetUserFromContext(ctx)
-	channelId := chi.URLParam(request, "channelId")
+	// user := serverutil.GetUserFromContext(ctx)
+	// channelId := chi.URLParam(request, "channelId")
 
 	conn := database.GetDatabase()
 
