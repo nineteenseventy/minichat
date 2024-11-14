@@ -20,6 +20,7 @@ type ChannelsResponse struct {
 }
 
 func getChannelsPublic(ctx context.Context, buffer *[]minichat.ChannelPublic) error {
+	userId := serverutil.GetUserIdFromContext(ctx)
 	conn := database.GetDatabase()
 	rows, err := conn.Query(
 		ctx,
@@ -29,12 +30,25 @@ func getChannelsPublic(ctx context.Context, buffer *[]minichat.ChannelPublic) er
 			"channel".type,
 			"channel".created_at,
 			"public".title,
-			"public".description
+			"public".description,
+			COUNT("unread_messages".*) AS "unread_count"
 		FROM minichat.channels AS "channel"
+		
+		-- member me
+		LEFT JOIN minichat.channels_members AS "me_member"
+		ON "me_member".channel_id = "channel".id
+		
+		-- unread messages
+		LEFT JOIN minichat.messages AS "unread_messages"
+		ON "unread_messages".channel_id = "channel".id AND "unread_messages"."timestamp" > "me_member".last_read_message_timestamp
+		
+		-- public channel
 		LEFT JOIN minichat.channels_public AS "public"
-		ON "channel".id = "public".id AND "channel".type = 'public'
-		WHERE "channel".type = 'public'
+		ON "public".id = "channel".id
+		WHERE "channel"."type" = 'public' AND "me_member".user_id = $1
+		GROUP BY "channel".id, "public".id
 		`,
+		userId,
 	)
 	if err != nil {
 		return err
@@ -45,7 +59,7 @@ func getChannelsPublic(ctx context.Context, buffer *[]minichat.ChannelPublic) er
 		var channel minichat.ChannelPublic
 		var description sql.NullString
 		var createdAt pgtype.Timestamptz
-		err := rows.Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title, &description)
+		err := rows.Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title, &description, &channel.UnreadCount)
 		if err != nil {
 			return err
 		}
@@ -74,31 +88,37 @@ func getChannelsPrivate(ctx context.Context, userId string, buffer *[]minichat.C
 	rows, err := conn.Query(
 		ctx,
 		`
-		select
+		SELECT
 			"channel".id,
 			"channel"."type",
 			"channel".created_at,
-			coalesce("group".title, "direct_partner".username) as "title"
-		from minichat.channels AS "channel"
+			COALESCE("group".title, "direct_partner".username) AS "title",
+			COUNT("unread_messages".*) AS "unread_count"
+		FROM minichat.channels AS "channel"
 		
-		-- member
-		left join minichat.channels_members as "me_member"
-		on "channel".id = "me_member".channel_id 
+		-- member me
+		LEFT JOIN minichat.channels_members AS "me_member"
+		ON "channel".id = "me_member".channel_id
+		
+		-- unread messages
+		LEFT JOIN minichat.messages AS "unread_messages"
+		ON "unread_messages".channel_id = "channel".id AND "unread_messages"."timestamp" > "me_member".last_read_message_timestamp
 		
 		-- group
-		left join minichat.channels_group as "group"
-		on "group".id = "channel".id
+		LEFT JOIN minichat.channels_group AS "group"
+		ON "group".id = "channel".id
 		
 		-- direct
-		left join minichat.channels_direct as "direct"
-		on "channel".id = "direct".id 
-
+		LEFT JOIN minichat.channels_direct AS "direct"
+		ON "channel".id = "direct".id 
+		
 		-- direct_partner
-		left join minichat.channels_members as "direct_partner_member"
-		on "direct".id = "direct_partner_member".channel_id and "direct_partner_member".id != "me_member".id
-		left join minichat.users as "direct_partner"
-		on "direct_partner_member".user_id = "direct_partner".id
-		WHERE ("channel"."type" = 'group' OR "channel"."type" = 'direct') and "me_member".user_id = $1
+		LEFT JOIN minichat.channels_members AS "direct_partner_member"
+		ON "direct".id = "direct_partner_member".channel_id AND "direct_partner_member".id != "me_member".id
+		LEFT JOIN minichat.users AS "direct_partner"
+		ON "direct_partner_member".user_id = "direct_partner".id
+		WHERE ("channel"."type" = 'group' OR "channel"."type" = 'direct') AND "me_member".user_id = $1
+		GROUP BY "channel".id, "group".id, "direct_partner".id
 		`,
 		userId,
 	)
@@ -110,7 +130,7 @@ func getChannelsPrivate(ctx context.Context, userId string, buffer *[]minichat.C
 	for rows.Next() {
 		var channel minichat.ChannelPrivate
 		var timestamp pgtype.Timestamptz
-		err := rows.Scan(&channel.Id, &channel.Type, &timestamp, &channel.Title)
+		err := rows.Scan(&channel.Id, &channel.Type, &timestamp, &channel.Title, &channel.UnreadCount)
 		if err != nil {
 			return err
 		}
