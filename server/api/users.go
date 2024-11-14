@@ -121,10 +121,8 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	util.JSONResponse(writer, user)
 }
 
-func UserRouter() (string, chi.Router) {
-	router := chi.NewRouter()
-	router.Get("/", getUsersHandler)
-	router.Get("/{id}", getUserHandler)
-	router.Get("/{id}/profile", getUserProfileHandler)
-	return "/users", router
+func UsersRouter(router chi.Router) {
+	router.Get("/users", getUsersHandler)
+	router.Get("/users/{id}", getUserHandler)
+	router.Get("/users/{id}/profile", getUserProfileHandler)
 }

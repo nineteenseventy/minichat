@@ -154,10 +154,8 @@ func getChannelsHandler(writer http.ResponseWriter, request *http.Request) {
 	util.JSONResponse(writer, channelsResponse)
 }
 
-func ChannelRouter() (string, chi.Router) {
-	router := chi.NewRouter()
-	router.Get("/public", getChannelsPublicHandler)
-	router.Get("/private", getChannelsPrivateHandler)
-	router.Get("/", getChannelsHandler)
-	return "/channels", router
+func ChannelsRouter(router chi.Router) {
+	router.Get("/channels/public", getChannelsPublicHandler)
+	router.Get("/channels/private", getChannelsPrivateHandler)
+	router.Get("/channels", getChannelsHandler)
 }
