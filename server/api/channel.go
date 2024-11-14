@@ -56,8 +56,8 @@ func getChannelsPublic(ctx context.Context, buffer *[]minichat.ChannelPublic) er
 }
 
 func getChannelsPublicHandler(writer http.ResponseWriter, request *http.Request) {
-	var publicChannels []minichat.ChannelPublic
 	ctx := request.Context()
+	var publicChannels []minichat.ChannelPublic
 
 	err := getChannelsPublic(ctx, &publicChannels)
 	if err != nil {
@@ -117,9 +117,9 @@ func getChannelsPrivate(ctx context.Context, userId string, buffer *[]minichat.C
 }
 
 func getChannelsPrivateHandler(writer http.ResponseWriter, request *http.Request) {
-	user := request.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
-	var privateChannels []minichat.ChannelPrivate
 	ctx := request.Context()
+	user := ctx.Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
+	var privateChannels []minichat.ChannelPrivate
 
 	err := getChannelsPrivate(ctx, user.ID, &privateChannels)
 	if err != nil {
@@ -131,9 +131,9 @@ func getChannelsPrivateHandler(writer http.ResponseWriter, request *http.Request
 }
 
 func getChannelsHandler(writer http.ResponseWriter, request *http.Request) {
-	user := request.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
-	var channelsResponse ChannelsResponse
 	ctx := request.Context()
+	user := ctx.Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
+	var channelsResponse ChannelsResponse
 
 	err := getChannelsPublic(ctx, &channelsResponse.Public)
 	if err != nil {

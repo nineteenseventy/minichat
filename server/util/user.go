@@ -1,9 +1,11 @@
 package util
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/nineteenseventy/minichat/core/logging"
+	"github.com/nineteenseventy/minichat/core/minichat"
 )
 
 func ParseUserPictureUrl(picture sql.NullString) *string {
@@ -17,4 +19,8 @@ func ParseUserPictureUrl(picture sql.NullString) *string {
 		return &pictureUrl
 	}
 	return nil
+}
+
+func GetUserFromContext(ctx context.Context) minichat.UserProfile {
+	return ctx.Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
 }
