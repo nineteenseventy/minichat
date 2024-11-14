@@ -46,19 +46,13 @@ func getUsersHandler(writer http.ResponseWriter, request *http.Request) {
 	util.JSONResponse(writer, util.NewResult(users))
 }
 
-func getMeHandler(writer http.ResponseWriter, request *http.Request) {
-	userProfile := request.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
-	user := minichat.User{
-		ID:       userProfile.ID,
-		Username: userProfile.Username,
-		Picture:  userProfile.Picture,
-	}
-	util.JSONResponse(writer, user)
-}
-
 func getUserHandler(writer http.ResponseWriter, request *http.Request) {
 	conn := database.GetDatabase()
 	id := chi.URLParam(request, "id")
+
+	if id == "me" {
+		id = serverutil.GetUserIdFromContext(request.Context())
+	}
 
 	var username string
 	var picture sql.NullString
@@ -88,14 +82,12 @@ func getUserHandler(writer http.ResponseWriter, request *http.Request) {
 	util.JSONResponse(writer, user)
 }
 
-func getMeProfileHandler(writer http.ResponseWriter, request *http.Request) {
-	user := request.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
-	util.JSONResponse(writer, user)
-}
-
 func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	conn := database.GetDatabase()
 	id := chi.URLParam(request, "id")
+	if id == "me" {
+		id = serverutil.GetUserIdFromContext(request.Context())
+	}
 
 	var username string
 	var bio, picture, color sql.NullString
@@ -132,9 +124,7 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 func UserRouter() (string, chi.Router) {
 	router := chi.NewRouter()
 	router.Get("/", getUsersHandler)
-	router.Get("/me", getMeHandler)
 	router.Get("/{id}", getUserHandler)
-	router.Get("/me/profile", getMeProfileHandler)
 	router.Get("/{id}/profile", getUserProfileHandler)
 	return "/users", router
 }

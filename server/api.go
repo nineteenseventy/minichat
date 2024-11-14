@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -39,9 +40,11 @@ func ApiRouter() chi.Router {
 	// 	fmt.Println(prefix, router)
 	// 	router.Mount(prefix, router)
 	// }
-	_, lmao := api.UserRouter()
-	router.Mount("/users", lmao)
-	_, lmao = api.ChannelRouter()
-	router.Mount("/channels", lmao)
+	e, lmao := api.UserRouter()
+	fmt.Println(e)
+	router.Mount(e, lmao)
+	e, lmao = api.ChannelRouter()
+	fmt.Println(e)
+	router.Mount(e, lmao)
 	return router
 }
