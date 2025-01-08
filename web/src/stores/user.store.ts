@@ -1,17 +1,44 @@
-import { ref, computed } from 'vue';
+import { ref, computed, type Ref, reactive } from 'vue';
 import { defineStore } from 'pinia';
-import type { UserProfile } from '@/interfaces/userProfile.interface';
+import { useApi } from '@/composables/useApi';
+import type { UserProfile } from '@/interfaces/userProfile.interface'; // TODO: create seperate interface for stored user
+import type { User } from '@/interfaces/user.interface';
+
+interface StoredUser {
+  id: string;
+  referenceCounter: number;
+  user?: User;
+}
 
 export const useUserStore = defineStore('user', () => {
-  const user = ref<UserProfile | undefined>(undefined);
-  function setUser(newUser: UserProfile) {
-    user.value = newUser;
+  const users = ref<StoredUser[]>([]);
+  function getUser(userId: string): Ref<User | undefined> {
+    let storedUser = users.value.find((v) => v.id === userId);
+    if (!storedUser) {
+      storedUser = {
+        id: userId,
+        referenceCounter: 0,
+      };
+      users.value.push(storedUser);
+    }
+    storedUser.referenceCounter += 1;
+    return computed(() => users.value.find((v) => v.id === userId)?.user);
   }
 
-  const id = computed(() => user.value?.id ?? undefined);
-  const username = computed(() => user.value?.username ?? undefined);
-  const bio = computed(() => user.value?.bio ?? undefined);
-  const profilePicture = computed(() => user.value?.picture ?? undefined);
+  async function updateStore() {
+    const activeUsers = users.value.filter((v) => v.referenceCounter > 0);
+    users.value = activeUsers;
+    for (const storedUser of activeUsers) {
+      await updateUser(storedUser);
+    }
+  }
 
-  return { user, setUser, id, username, bio, profilePicture };
+  async function updateUser(storedUser: StoredUser) {
+    const { data } = await useApi(`/users/${storedUser.id}`).json<User>();
+    if (data.value) {
+      storedUser.user = data.value;
+    }
+  }
+
+  return { users, getUser, updateStore };
 });

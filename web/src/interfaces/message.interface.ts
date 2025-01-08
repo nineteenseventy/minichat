@@ -1,8 +1,6 @@
-import type { User } from './user.interface';
-
 export interface Message {
   id: string;
-  author: User;
+  authorId: string;
   content: string;
   timestamp: string;
 }

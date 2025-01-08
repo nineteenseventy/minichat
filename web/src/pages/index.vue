@@ -1,25 +1,14 @@
 <script setup lang="ts">
 import MessageComponent from '@/components/Message.component.vue';
 import type { Message } from '@/interfaces/message.interface';
-import type { User } from '@/interfaces/user.interface';
-import { useUserStore } from '@/stores/user.store';
 import Panel from 'primevue/panel';
 import Card from 'primevue/card';
 import Listbox from 'primevue/listbox';
-import { ref } from 'vue';
+import { onBeforeMount, ref } from 'vue';
 import UserComponent from '@/components/User.component.vue';
 
-const me: User = {
-  id: 'me',
-  username: 'MeroFuruya',
-  picture: 'https://avatars.githubusercontent.com/u/29742437?v=4',
-};
-
-const userStore = useUserStore();
-userStore.setUser(me);
-
 const message: Message = {
-  author: me,
+  authorId: 'me',
   content: 'Hello, World!',
   id: '1',
   timestamp: new Date().toISOString(),
@@ -45,7 +34,7 @@ const privateAndDirectChannels = ref([
         <p><Listbox :options="privateAndDirectChannels"></Listbox></p>
       </Panel>
       <Card>
-        <template #content><UserComponent :user="me" /></template>
+        <template #content><UserComponent :userId="'me'" /></template>
       </Card>
     </nav>
     <main>
@@ -59,7 +48,12 @@ const privateAndDirectChannels = ref([
   display: flex;
   flex-direction: row;
 }
-#navbar {
-  // margin: 8px;
+
+nav {
+  width: 300px;
+}
+
+main {
+  flex: 1;
 }
 </style>

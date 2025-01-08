@@ -1,23 +1,25 @@
 <script setup lang="ts">
-import type { User } from '@/interfaces/user.interface';
-import { useUserProfile } from '@/composables/useUserProfile';
+import { useUserProfileDialog } from '@/composables/useUserProfileDialog';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatus.component.vue';
+import { useUserStore } from '@/stores/user.store';
 
-defineProps<{
-  user: User;
+const props = defineProps<{
+  userId: string;
 }>();
 
-const openProfile = useUserProfile();
+const openProfile = useUserProfileDialog();
+const userStore = useUserStore();
+const user = userStore.getUser(props.userId);
 </script>
 
 <template>
-  <div class="user" @click="openProfile(user.id)">
+  <div class="user" @click="openProfile(userId)">
     <UserPictureOnlineStatusComponent
-      :picture="user.picture"
-      :user-id="user.id"
+      :picture="user?.picture"
+      :user-id="userId"
     />
     <span class="username">
-      {{ user.username }}
+      {{ user?.username }}
     </span>
   </div>
 </template>
