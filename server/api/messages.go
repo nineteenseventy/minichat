@@ -193,7 +193,6 @@ func getMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	var isBefore bool
 	var isAfter bool
 	if before_param := query.Get("before"); before_param != "" {
-		fmt.Println("before_param", before_param)
 		timestamp, err = coreutil.ParseTimestamp(before_param)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -201,7 +200,6 @@ func getMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		isBefore = true
 	} else if after_param := query.Get("after"); after_param != "" {
-		fmt.Println("after_param", after_param)
 		timestamp, err = coreutil.ParseTimestamp(after_param)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
