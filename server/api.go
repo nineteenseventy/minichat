@@ -14,6 +14,7 @@ func getRoutes() []func(r chi.Router) {
 	return []func(r chi.Router){
 		api.UsersRouter,
 		api.ChannelsRouter,
+		api.MessagesRouter,
 	}
 }
 

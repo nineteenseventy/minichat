@@ -45,6 +45,7 @@ func getChannelsPublic(ctx context.Context, buffer *[]minichat.ChannelPublic) er
 		-- public channel
 		LEFT JOIN minichat.channels_public AS "public"
 		ON "public".id = "channel".id
+
 		WHERE "channel"."type" = 'public' AND "me_member".user_id = $1
 		GROUP BY "channel".id, "public".id
 		`,
@@ -110,13 +111,14 @@ func getChannelsPrivate(ctx context.Context, userId string, buffer *[]minichat.C
 		
 		-- direct
 		LEFT JOIN minichat.channels_direct AS "direct"
-		ON "channel".id = "direct".id 
+		ON "channel".id = "direct".id
 		
 		-- direct_partner
 		LEFT JOIN minichat.channels_members AS "direct_partner_member"
 		ON "direct".id = "direct_partner_member".channel_id AND "direct_partner_member".id != "me_member".id
 		LEFT JOIN minichat.users AS "direct_partner"
 		ON "direct_partner_member".user_id = "direct_partner".id
+
 		WHERE ("channel"."type" = 'group' OR "channel"."type" = 'direct') AND "me_member".user_id = $1
 		GROUP BY "channel".id, "group".id, "direct_partner".id
 		`,
@@ -174,8 +176,77 @@ func getChannelsHandler(writer http.ResponseWriter, request *http.Request) {
 	util.JSONResponse(writer, channelsResponse)
 }
 
+func getChannel(ctx context.Context, channelId string, buffer *minichat.Channel) error {
+	userId := serverutil.GetUserIdFromContext(ctx)
+
+	conn := database.GetDatabase()
+
+	var timestamp pgtype.Timestamptz
+	var description sql.NullString
+	err := conn.QueryRow(
+		ctx,
+		`
+			SELECT
+				"channel".id,
+				"channel".type,
+				"channel".created_at,
+				COALESCE("public".title, "group".title, "direct_partner".username) AS "title",
+				"public".description
+			FROM minichat.channels AS "channel"
+			
+			-- member me
+			LEFT JOIN minichat.channels_members AS "me_member"
+			ON "channel".id = "me_member".channel_id
+			
+			-- group
+			LEFT JOIN minichat.channels_group AS "group"
+			ON "group".id = "channel".id
+			
+			-- direct
+			LEFT JOIN minichat.channels_direct AS "direct"
+			ON "channel".id = "direct".id
+			
+			-- direct_partner
+			LEFT JOIN minichat.channels_members AS "direct_partner_member"
+			ON "direct".id = "direct_partner_member".channel_id AND "direct_partner_member".id != "me_member".id
+			LEFT JOIN minichat.users AS "direct_partner"
+			ON "direct_partner_member".user_id = "direct_partner".id
+			
+			-- public channel
+			LEFT JOIN minichat.channels_public AS "public"
+			ON "public".id = "channel".id
+			WHERE "me_member".user_id = $1 AND "channel".id = $2
+		`,
+		userId,
+		channelId,
+	).Scan(&buffer.Id, &buffer.Type, &timestamp, &buffer.Title, &description)
+	if err != nil {
+		return err
+	}
+	buffer.CreatedAt = coreutil.FormatTimestampz(timestamp)
+	buffer.Description = util.ParseSqlString(description)
+
+	// get last 10 messages
+	return nil
+}
+
+func getChannelHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	channelId := chi.URLParam(request, "channelId")
+	var channel minichat.Channel
+
+	err := getChannel(ctx, channelId, &channel)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	util.JSONResponse(writer, channel)
+}
+
 func ChannelsRouter(router chi.Router) {
 	router.Get("/channels/public", getChannelsPublicHandler)
 	router.Get("/channels/private", getChannelsPrivateHandler)
 	router.Get("/channels", getChannelsHandler)
+	router.Get("/channels/{channelId}", getChannelHandler)
 }
