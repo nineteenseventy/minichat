@@ -1,6 +1,6 @@
 package minichat
 
-type Channel struct {
+type BaseChannel struct {
 	Id          *string `json:"id"`
 	Type        string  `json:"type"`
 	CreatedAt   *string `json:"createdAt"`
@@ -8,12 +8,21 @@ type Channel struct {
 }
 
 type ChannelPrivate struct {
-	Channel
+	BaseChannel
 	Title string `json:"title"`
 }
 
 type ChannelPublic struct {
-	Channel
+	BaseChannel
 	Title       string  `json:"title"`
 	Description *string `json:"description"`
+}
+
+type Channel struct {
+	Id           string    `json:"id"`
+	Type         string    `json:"type"`
+	Title        string    `json:"title"`
+	Description  *string   `json:"description"`
+	CreatedAt    *string   `json:"createdAt"`
+	LastMessages []Message `json:"lastMessages"`
 }

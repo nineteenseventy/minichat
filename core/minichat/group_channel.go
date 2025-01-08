@@ -5,7 +5,7 @@ type BaseGroupChannel struct {
 }
 
 type GroupChannel struct {
-	Channel
+	BaseChannel
 	BaseGroupChannel
 	Users []User `json:"users"`
 }
