@@ -5,5 +5,8 @@ type Result[T any] struct {
 }
 
 func NewResult[T any](data []T) Result[T] {
+	if data == nil {
+		data = make([]T, 0)
+	}
 	return Result[T]{Data: data}
 }

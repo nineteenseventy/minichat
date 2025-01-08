@@ -7,23 +7,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/nineteenseventy/minichat/core/database"
 	"github.com/nineteenseventy/minichat/core/http/util"
-	"github.com/nineteenseventy/minichat/core/logging"
 	"github.com/nineteenseventy/minichat/core/minichat"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
-
-func parsePictureUrl(picture sql.NullString) *string {
-	logger := logging.GetLogger("server.api.users.parsePictureUrl")
-	if picture.Valid {
-		pictureUrl, err := serverutil.GetCdnUrl("profile", picture.String)
-		if err != nil {
-			logger.Error().Err(err).Msg("failed to get picture url")
-			return nil
-		}
-		return &pictureUrl
-	}
-	return nil
-}
 
 func getUsersHandler(writer http.ResponseWriter, request *http.Request) {
 	conn := database.GetDatabase()
@@ -53,25 +39,20 @@ func getUsersHandler(writer http.ResponseWriter, request *http.Request) {
 		user := minichat.User{
 			ID:       id,
 			Username: username,
-			Picture:  parsePictureUrl(picture),
+			Picture:  util.ParseSqlString(picture),
 		}
 		users = append(users, user)
 	}
 	util.JSONResponse(writer, util.NewResult(users))
 }
 
-func getMeHandler(writer http.ResponseWriter, request *http.Request) {
-	userProfile := request.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
-	user := minichat.User{
-		ID:       userProfile.ID,
-		Username: userProfile.Username,
-	}
-	util.JSONResponse(writer, user)
-}
-
 func getUserHandler(writer http.ResponseWriter, request *http.Request) {
 	conn := database.GetDatabase()
 	id := chi.URLParam(request, "id")
+
+	if id == "me" {
+		id = serverutil.GetUserIdFromContext(request.Context())
+	}
 
 	var username string
 	var picture sql.NullString
@@ -95,20 +76,18 @@ func getUserHandler(writer http.ResponseWriter, request *http.Request) {
 	user := minichat.User{
 		ID:       id,
 		Username: username,
-		Picture:  parsePictureUrl(picture),
+		Picture:  serverutil.ParseUserPictureUrl(picture),
 	}
 
-	util.JSONResponse(writer, user)
-}
-
-func getMeProfileHandler(writer http.ResponseWriter, request *http.Request) {
-	user := request.Context().Value(minichat.UserProfileContextKey{}).(minichat.UserProfile)
 	util.JSONResponse(writer, user)
 }
 
 func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	conn := database.GetDatabase()
 	id := chi.URLParam(request, "id")
+	if id == "me" {
+		id = serverutil.GetUserIdFromContext(request.Context())
+	}
 
 	var username string
 	var bio, picture, color sql.NullString
@@ -134,7 +113,7 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	user := minichat.UserProfile{
 		ID:       id,
 		Username: username,
-		Picture:  parsePictureUrl(picture),
+		Picture:  serverutil.ParseUserPictureUrl(picture),
 		Bio:      util.ParseSqlString(bio),
 		Color:    util.ParseSqlString(color),
 	}
@@ -142,12 +121,8 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	util.JSONResponse(writer, user)
 }
 
-func UserRouter() chi.Router {
-	router := chi.NewRouter()
+func UsersRouter(router chi.Router) {
 	router.Get("/users", getUsersHandler)
-	router.Get("/users/me", getMeHandler)
 	router.Get("/users/{id}", getUserHandler)
-	router.Get("/users/me/profile", getMeProfileHandler)
 	router.Get("/users/{id}/profile", getUserProfileHandler)
-	return router
 }
