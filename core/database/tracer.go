@@ -27,7 +27,7 @@ func cleanupSql(sql string) string {
 	for _, row := range rows {
 		cleanedRows = append(cleanedRows, strings.TrimSpace(row))
 	}
-	return strings.Join(cleanedRows, "\\n")
+	return strings.Join(cleanedRows, " ")
 }
 
 func (tracer *DatabaseTracer) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryStartData) context.Context {

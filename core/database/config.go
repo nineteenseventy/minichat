@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DatabaseConfig struct {
@@ -15,7 +15,7 @@ type DatabaseConfig struct {
 	Tls      bool
 }
 
-func ParseConfig(config DatabaseConfig) (*pgx.ConnConfig, error) {
+func ParseConfig(config DatabaseConfig) (*pgxpool.Config, error) {
 	connStr := fmt.Sprintf(
 		"user=%s password=%s host=%s port=%d dbname=%s",
 		config.User,
@@ -24,13 +24,13 @@ func ParseConfig(config DatabaseConfig) (*pgx.ConnConfig, error) {
 		config.Port,
 		config.Database,
 	)
-	pgConfig, err := pgx.ParseConfig(connStr)
+	pgConfig, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, err
 	}
 
 	if !config.Tls {
-		pgConfig.TLSConfig = nil
+		pgConfig.ConnConfig.TLSConfig = nil
 	}
 
 	return pgConfig, nil
