@@ -3,11 +3,11 @@ package database
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nineteenseventy/minichat/core/logging"
 )
 
-var globalDatabase *pgx.Conn
+var globalDatabase *pgxpool.Pool
 
 func InitDatabase(ctx context.Context, config DatabaseConfig) error {
 	logger := logging.GetLogger("database")
@@ -18,15 +18,15 @@ func InitDatabase(ctx context.Context, config DatabaseConfig) error {
 		return err
 	}
 
-	configStruct.AfterConnect = ValidateConnect(logger)
-	configStruct.OnPgError = PgError(logger)
-	configStruct.OnNotice = Notice(logger)
-	configStruct.Tracer = NewDatabaseTracer(logger)
-	globalDatabase, err = pgx.ConnectConfig(ctx, configStruct)
+	configStruct.ConnConfig.AfterConnect = ValidateConnect(logger)
+	configStruct.ConnConfig.OnPgError = PgError(logger)
+	configStruct.ConnConfig.OnNotice = Notice(logger)
+	configStruct.ConnConfig.Tracer = NewDatabaseTracer(logger)
+	globalDatabase, err = pgxpool.NewWithConfig(ctx, configStruct)
 	return err
 }
 
-func GetDatabase() *pgx.Conn {
+func GetDatabase() *pgxpool.Pool {
 	if globalDatabase == nil {
 		panic("Database not initialized")
 	}
