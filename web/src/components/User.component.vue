@@ -8,8 +8,7 @@ const props = defineProps<{
 }>();
 
 const openProfile = useUserProfileDialog();
-const userStore = useUserStore();
-const user = userStore.getUser(props.userId);
+const user = useUserStore().getUser(props.userId);
 </script>
 
 <template>

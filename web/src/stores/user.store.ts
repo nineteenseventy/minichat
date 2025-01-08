@@ -10,7 +10,32 @@ interface StoredUser {
   user?: User;
 }
 
-export const useUserStore = defineStore('user', () => {
+const userStoreInitialized = ref(false);
+const initializationStarted = ref(false);
+
+async function initialize() {
+  return (await useApi('/users/me').json<User>()).data.value?.id;
+}
+
+export const useUserStore = () => {
+  const store = userStore();
+  if (!userStoreInitialized.value && !initializationStarted.value) {
+    initializationStarted.value = true;
+    console.debug('initialize() called');
+    void initialize().then((data) => {
+      if (!data) throw new Error('Something went wrong!');
+      store.authenticatedUserId = data;
+      userStoreInitialized.value = true;
+      console.info('user store initialized with: ' + JSON.stringify(data));
+    });
+  }
+  return store;
+};
+
+const userStore = defineStore('user', () => {
+  const authenticatedUserId = ref<string>(
+    '2d0a4682-a7a3-4461-98bc-4b403a94f000',
+  );
   const users = ref<StoredUser[]>([]);
   function getUser(userId: string): Ref<User | undefined> {
     let storedUser = users.value.find((v) => v.id === userId);
@@ -19,6 +44,7 @@ export const useUserStore = defineStore('user', () => {
         id: userId,
         referenceCounter: 0,
       };
+      updateUser(storedUser);
       users.value.push(storedUser);
     }
     storedUser.referenceCounter += 1;
@@ -40,5 +66,5 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  return { users, getUser, updateStore };
+  return { authenticatedUserId, users, getUser, updateStore };
 });

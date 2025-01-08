@@ -22,7 +22,7 @@ const timestamp = computed(() => {
 });
 
 const isMyMessage = computed(() => {
-  return props.message.author.id === userStore.id;
+  return props.message.authorId === userStore.authenticatedUserId;
 });
 
 function editMessage() {
@@ -36,7 +36,7 @@ function deleteMessage() {
 <template>
   <Panel>
     <template #header>
-      <UserComponent :user="message.author" class="user" />
+      <UserComponent :userId="message.authorId" class="user" />
       <div class="message-controls">
         <span v-if="isMyMessage" class="edit" @click="editMessage()">
           Edit

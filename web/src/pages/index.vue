@@ -4,8 +4,11 @@ import type { Message } from '@/interfaces/message.interface';
 import Panel from 'primevue/panel';
 import Card from 'primevue/card';
 import Listbox from 'primevue/listbox';
-import { onBeforeMount, ref } from 'vue';
+import { ref } from 'vue';
 import UserComponent from '@/components/User.component.vue';
+import { useUserStore } from '@/stores/user.store';
+
+const userStore = useUserStore();
 
 const message: Message = {
   authorId: 'me',
@@ -34,7 +37,9 @@ const privateAndDirectChannels = ref([
         <p><Listbox :options="privateAndDirectChannels"></Listbox></p>
       </Panel>
       <Card>
-        <template #content><UserComponent :userId="'me'" /></template>
+        <template #content
+          ><UserComponent :userId="userStore.authenticatedUserId"
+        /></template>
       </Card>
     </nav>
     <main>
