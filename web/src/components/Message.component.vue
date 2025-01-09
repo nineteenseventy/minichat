@@ -4,7 +4,7 @@ import Panel from 'primevue/panel';
 import UserComponent from './User.component.vue';
 import { useRelativeFormattedDate } from '@/composables/useFormattedDate';
 import { computed } from 'vue';
-import { useUserStore } from '@/stores/user.store';
+import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 
 const props = defineProps<{
   /**
@@ -13,7 +13,7 @@ const props = defineProps<{
   message: Message;
 }>();
 
-const userStore = useUserStore();
+const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
 const timestamp = computed(() => {
   if (!props.message.timestamp) return '';
@@ -22,7 +22,7 @@ const timestamp = computed(() => {
 });
 
 const isMyMessage = computed(() => {
-  return props.message.authorId === userStore.authenticatedUserId;
+  return props.message.authorId === authenticatedUserId;
 });
 
 function editMessage() {

@@ -8,6 +8,7 @@ import { onBeforeMount, ref } from 'vue';
 import UserComponent from '@/components/User.component.vue';
 import { useUserStore } from '@/stores/user.store';
 import { useTimeoutPoll } from '@vueuse/core';
+import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 
 onBeforeMount(() => {
   useTimeoutPoll(async () => await userStore.updateStore(), 60000, {
@@ -16,12 +17,16 @@ onBeforeMount(() => {
 });
 
 const userStore = useUserStore();
+const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
 const message: Message = {
-  authorId: userStore.authenticatedUserId,
+  authorId: authenticatedUserId,
   content: 'Hello, World!',
   id: '1',
   timestamp: new Date().toISOString(),
+  attachments: [],
+  channelId: 'Global Channel',
+  read: false,
 };
 
 const selectedElement = ref();
@@ -45,12 +50,12 @@ const privateAndDirectChannels = ref([
       </Panel>
       <Card>
         <template #content
-          ><UserComponent :userId="userStore.authenticatedUserId"
+          ><UserComponent :userId="authenticatedUserId"
         /></template>
       </Card>
     </nav>
     <main>
-      MAIN CONTENT HERE
+      <span class="text-red-500"> MAIN CONTENT HERE </span>
       <MessageComponent :message="message" />
     </main>
   </div>

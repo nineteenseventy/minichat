@@ -2,7 +2,7 @@ import { createAuthGuard } from '@auth0/auth0-vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { routes } from 'vue-router/auto-routes';
 import auth0 from '../auth0';
-import { initializeUserStore } from '@/stores/user.store';
+import { initializeAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +25,6 @@ router.beforeEach((to) => {
   return createAuthGuard()(to);
 });
 
-router.beforeEach(initializeUserStore);
+router.beforeEach(initializeAuthenticatedUserStore);
 
 export default router;

@@ -3,7 +3,6 @@ import { useOnlineStatusStore } from '@/stores/onlineStatus.store';
 import UserPictureComponent from './UserPicture.component.vue';
 
 const props = defineProps<{
-  picture?: string;
   userId: string;
 }>();
 
@@ -12,7 +11,7 @@ const online = onlineStatusStore.getUserOnlineStatus(props.userId);
 </script>
 
 <template>
-  <UserPictureComponent :picture="picture" class="picture" :class="online" />
+  <UserPictureComponent :userId="userId" class="picture" :class="online" />
 </template>
 
 <style scoped lang="scss">

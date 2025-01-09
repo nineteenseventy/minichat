@@ -3,7 +3,7 @@ import { useApi } from '@/composables/useApi';
 import type { UserProfile } from '@/interfaces/userProfile.interface';
 import { computed, inject } from 'vue';
 import type { DynamicDialogInstance } from 'primevue/dynamicdialogoptions';
-import { useUserStore } from '@/stores/user.store';
+import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatus.component.vue';
@@ -15,9 +15,9 @@ interface DialogRef {
 const dialogRef = inject<DialogRef>('dialogRef');
 const router = useRouter();
 
-const userStore = useUserStore();
+const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
-const user = dialogRef?.value.data.user ?? 'me';
+const user = dialogRef?.value.data.user ?? authenticatedUserId;
 const { data, error, isFetching } = useApi(`/users/${user}/profile`, {
   afterFetch(ctx) {
     if (dialogRef) {
@@ -27,7 +27,7 @@ const { data, error, isFetching } = useApi(`/users/${user}/profile`, {
   },
 }).json<UserProfile>();
 
-const isMe = computed(() => userStore.id === data?.value?.id);
+const isMe = computed(() => data?.value?.id === authenticatedUserId);
 const close = () => dialogRef?.value.close();
 const editMyProfile = () => {
   dialogRef?.value.close();
