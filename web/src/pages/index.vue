@@ -1,26 +1,51 @@
 <script setup lang="ts">
 import MessageComponent from '@/components/Message.component.vue';
 import type { Message } from '@/interfaces/message.interface';
-import type { User } from '@/interfaces/user.interface';
+import Card from 'primevue/card';
+import { onBeforeMount } from 'vue';
+import UserComponent from '@/components/User.component.vue';
 import { useUserStore } from '@/stores/user.store';
+import { useTimeoutPoll } from '@vueuse/core';
+import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
+import ChannelsComponent from '@/components/channels.component.vue';
 
-const me: User = {
-  id: '28585f72-0eb6-49ab-97ec-b7453a0f526b',
-  username: 'MeroFuruya',
-  picture: 'https://avatars.githubusercontent.com/u/29742437?v=4',
-};
+onBeforeMount(() => {
+  useTimeoutPoll(async () => await userStore.updateStore(), 60000, {
+    immediate: true,
+  });
+});
 
 const userStore = useUserStore();
-userStore.setUser(me);
+const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
 const message: Message = {
-  author: me,
+  authorId: authenticatedUserId,
   content: 'Hello, World!',
   id: '1',
   timestamp: new Date().toISOString(),
+  attachments: [],
+  channelId: 'Global Channel',
+  read: false,
 };
 </script>
 
 <template>
-  <MessageComponent :message="message" />
+  <div class="flex flex-row gap-2 p-2 h-full">
+    <nav class="w-72 flex flex-col gap-1">
+      <ChannelsComponent class="h-full" />
+      <!-- <Card class="h-full">
+        <template #content>
+        </template>
+      </Card> -->
+      <Card>
+        <template #content>
+          <UserComponent :userId="authenticatedUserId" />
+        </template>
+      </Card>
+    </nav>
+    <main class="flex-1">
+      <span class="text-red-500"> MAIN CONTENT HERE </span>
+      <MessageComponent :message="message" />
+    </main>
+  </div>
 </template>

@@ -4,8 +4,8 @@ import { defineConfig } from 'vite';
 import VueRouter from 'unplugin-vue-router/vite';
 import vue from '@vitejs/plugin-vue';
 import vueDevTools from 'vite-plugin-vue-devtools';
-import Components from 'unplugin-vue-components/vite';
-import { PrimeVueResolver } from 'unplugin-vue-components/resolvers';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,11 +16,6 @@ export default defineConfig({
     }),
     vue(),
     vueDevTools(),
-    Components({
-      dirs: ['src/components', 'src/views'],
-      resolvers: [PrimeVueResolver()],
-      directoryAsNamespace: true,
-    }),
   ],
   envDir: '../',
   build: {
@@ -30,6 +25,23 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern',
+      },
+    },
+    postcss: {
+      plugins: [
+        tailwindcss({
+          config: fileURLToPath(
+            new URL('./tailwind.config.js', import.meta.url),
+          ),
+        }),
+        autoprefixer(),
+      ],
     },
   },
 });

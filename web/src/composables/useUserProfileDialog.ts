@@ -5,7 +5,7 @@ import { defineAsyncComponent } from 'vue';
  *
  * @param user the user id, can be `me`
  */
-export const useUserProfile = function () {
+export const useUserProfileDialog = function () {
   const dialog = useDialog();
 
   const UserProfileComponent = defineAsyncComponent(

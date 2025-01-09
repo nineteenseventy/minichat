@@ -3,7 +3,7 @@ import { useApi } from '@/composables/useApi';
 import type { UserProfile } from '@/interfaces/userProfile.interface';
 import { computed, inject } from 'vue';
 import type { DynamicDialogInstance } from 'primevue/dynamicdialogoptions';
-import { useUserStore } from '@/stores/user.store';
+import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatus.component.vue';
@@ -15,9 +15,9 @@ interface DialogRef {
 const dialogRef = inject<DialogRef>('dialogRef');
 const router = useRouter();
 
-const userStore = useUserStore();
+const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
-const user = dialogRef?.value.data.user ?? 'me';
+const user = dialogRef?.value.data.user ?? authenticatedUserId;
 const { data, error, isFetching } = useApi(`/users/${user}/profile`, {
   afterFetch(ctx) {
     if (dialogRef) {
@@ -27,7 +27,7 @@ const { data, error, isFetching } = useApi(`/users/${user}/profile`, {
   },
 }).json<UserProfile>();
 
-const isMe = computed(() => userStore.id === data?.value?.id);
+const isMe = computed(() => data?.value?.id === authenticatedUserId);
 const close = () => dialogRef?.value.close();
 const editMyProfile = () => {
   dialogRef?.value.close();
@@ -40,86 +40,31 @@ const bio = computed(() => {
 </script>
 
 <template>
-  <div class="profile">
-    <div class="loading" v-if="isFetching">
+  <div class="flex flex-col mt-2">
+    <div
+      class="absolute inset-0 flex justify-center items-center backdrop-blur bg-black bg-opacity-50"
+      v-if="isFetching"
+    >
       <SpinnerComponent />
     </div>
     <UserPictureOnlineStatusComponent :picture="data?.picture" :userId="user" />
-    <span class="username">{{ data?.username }}</span>
-    <span v-if="!!error" class="profile-error"
+    <span class="font-bold text-2xl mix-blend-difference">{{
+      data?.username
+    }}</span>
+    <span v-if="!!error" class="pt-2 text-orange-500"
       >Profile Could not be retrieved!</span
     >
-    <div class="bio">
-      <span class="title">Bio</span>
-      <div class="content">
+    <div
+      class="mt-4 flex flex-col bg-transparent bg-opacity-30 rounded-lg px-2 py-4 min-h-20"
+    >
+      <span class="font-bold mb-2">Bio</span>
+      <div class="flex flex-col">
         <span v-for="line in bio" :key="line">{{ line }}</span>
       </div>
     </div>
-    <div class="controls">
+    <div class="flex gap-4 mt-4">
       <Button @click="close()">Close</Button>
       <Button v-if="isMe" @click="editMyProfile()">Edit</Button>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.profile {
-  display: flex;
-  flex-direction: column;
-  margin-top: 0.5rem;
-}
-
-.loading {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.user-profile {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-}
-
-.username {
-  font-weight: bold;
-  font-size: 1.5rem;
-  mix-blend-mode: difference;
-}
-
-.bio {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  min-height: 5rem;
-  font-size: 1rem;
-  .title {
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-  }
-  .content {
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-.controls {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.profile-error {
-  padding-top: 0.5rem;
-  color: orange;
-}
-</style>
