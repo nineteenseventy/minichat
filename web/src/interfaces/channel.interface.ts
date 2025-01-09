@@ -23,6 +23,8 @@ export interface GroupChannel extends BaseChannel {
   title: string;
 }
 
+export type Channel = DirectChannel | PublicChannel | GroupChannel;
+
 export interface ChannelsResponse {
   private: (GroupChannel | DirectChannel)[];
   public: PublicChannel[];

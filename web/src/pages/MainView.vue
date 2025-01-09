@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import MessageComponent from '@/components/Message.component.vue';
-import type { Message } from '@/interfaces/message.interface';
 import Card from 'primevue/card';
 import { onBeforeMount } from 'vue';
 import UserComponent from '@/components/User.component.vue';
@@ -17,26 +15,12 @@ onBeforeMount(() => {
 
 const userStore = useUserStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
-
-const message: Message = {
-  authorId: authenticatedUserId,
-  content: 'Hello, World!',
-  id: '1',
-  timestamp: new Date().toISOString(),
-  attachments: [],
-  channelId: 'Global Channel',
-  read: false,
-};
 </script>
 
 <template>
   <div class="flex flex-row gap-2 p-2 h-full">
     <nav class="w-72 flex flex-col gap-1">
       <ChannelsComponent class="h-full" />
-      <!-- <Card class="h-full">
-        <template #content>
-        </template>
-      </Card> -->
       <Card>
         <template #content>
           <UserComponent :userId="authenticatedUserId" />
@@ -44,8 +28,7 @@ const message: Message = {
       </Card>
     </nav>
     <main class="flex-1">
-      <span class="text-red-500"> MAIN CONTENT HERE </span>
-      <MessageComponent :message="message" />
+      <RouterView />
     </main>
   </div>
 </template>
