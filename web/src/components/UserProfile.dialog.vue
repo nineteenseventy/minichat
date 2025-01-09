@@ -40,8 +40,11 @@ const bio = computed(() => {
 </script>
 
 <template>
-  <div class="profile">
-    <div class="loading" v-if="isFetching">
+  <div class="flex flex-col mt-2">
+    <div
+      class="absolute inset-0 flex justify-center items-center backdrop-blur bg-black bg-opacity-50"
+      v-if="isFetching"
+    >
       <SpinnerComponent />
     </div>
     <UserPictureOnlineStatusComponent :picture="data?.picture" :userId="user" />
@@ -63,12 +66,6 @@ const bio = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.profile {
-  display: flex;
-  flex-direction: column;
-  margin-top: 0.5rem;
-}
-
 .loading {
   position: absolute;
   top: 0;

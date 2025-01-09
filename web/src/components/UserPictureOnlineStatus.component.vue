@@ -11,15 +11,14 @@ const online = onlineStatusStore.getUserOnlineStatus(props.userId);
 </script>
 
 <template>
-  <UserPictureComponent :userId="userId" class="picture" :class="online" />
+  <UserPictureComponent
+    :userId="userId"
+    class="outline outline-2 outline-offset-2"
+    :class="online"
+  />
 </template>
 
 <style scoped lang="scss">
-.picture {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-
 .online {
   outline-color: green;
 }

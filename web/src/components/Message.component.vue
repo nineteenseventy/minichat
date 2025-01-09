@@ -36,12 +36,20 @@ function deleteMessage() {
 <template>
   <Panel>
     <template #header>
-      <UserComponent :userId="message.authorId" class="user" />
-      <div class="message-controls">
-        <span v-if="isMyMessage" class="edit" @click="editMessage()">
+      <UserComponent :userId="message.authorId" class="w-full" />
+      <div class="flex justify-end gap-2">
+        <span
+          v-if="isMyMessage"
+          class="cursor-pointer hover:underline"
+          @click="editMessage()"
+        >
           Edit
         </span>
-        <span v-if="isMyMessage" class="delete" @click="deleteMessage()">
+        <span
+          v-if="isMyMessage"
+          class="cursor-pointer hover:underline"
+          @click="deleteMessage()"
+        >
           Delete
         </span>
       </div>
@@ -50,32 +58,9 @@ function deleteMessage() {
       {{ message.content }}
     </span>
     <template #footer>
-      <span class="timestamp">
+      <span class="text-xs">
         {{ timestamp }}
       </span>
     </template>
   </Panel>
 </template>
-
-<style scoped>
-.user {
-  width: 100%;
-}
-
-.message-controls {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-
-  * {
-    cursor: pointer;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-}
-
-.timestamp {
-  font-size: 0.75rem;
-}
-</style>

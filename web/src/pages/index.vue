@@ -32,11 +32,11 @@ const message: Message = {
 <template>
   <div class="flex flex-row gap-2 p-2 h-full">
     <nav class="w-72 flex flex-col gap-1">
-      <Card class="h-full">
+      <ChannelsComponent class="h-full" />
+      <!-- <Card class="h-full">
         <template #content>
-          <ChannelsComponent class="h-full" />
         </template>
-      </Card>
+      </Card> -->
       <Card>
         <template #content>
           <UserComponent :userId="authenticatedUserId" />
