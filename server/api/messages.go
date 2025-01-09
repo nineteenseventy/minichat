@@ -261,6 +261,21 @@ func postMessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// update last read message timestamp
+	_, err = conn.Exec(
+		ctx,
+		`UPDATE minichat.channels_members
+		SET last_read_message_timestamp = $3
+		WHERE user_id = $1 AND channel_id = $2`,
+		userId,
+		channelId,
+		message.Timestamp,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	util.JSONResponse(w, message)
 }
 
