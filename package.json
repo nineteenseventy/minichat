@@ -26,6 +26,7 @@
     "dotenv": "^16.4.5",
     "pinia": "^2.1.7",
     "postgres": "^3.4.4",
+    "primeicons": "^7.0.0",
     "primevue": "^4.0.5",
     "rimraf": "^6.0.1",
     "vue": "^3.5.5",
