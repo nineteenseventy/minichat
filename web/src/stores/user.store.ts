@@ -11,6 +11,7 @@ interface StoredUser {
 
 export const useUserStore = defineStore('user', () => {
   const users = ref<StoredUser[]>([]);
+
   function getUser(userId: string): Ref<User | undefined> {
     const storedUser = computed(() => users.value.find((v) => v.id === userId));
     if (!storedUser.value) {

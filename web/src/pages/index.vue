@@ -8,25 +8,51 @@ import { useUserStore } from '@/stores/user.store';
 import { useTimeoutPoll } from '@vueuse/core';
 import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 import ChannelsComponent from '@/components/channels.component.vue';
+import { useOnlineStatusStore } from '@/stores/onlineStatus.store';
 
 onBeforeMount(() => {
   useTimeoutPoll(async () => await userStore.updateStore(), 60000, {
     immediate: true,
   });
+
+  useTimeoutPoll(async () => await onlineStatus.updateStore(), 10000, {
+    immediate: true,
+  });
 });
 
 const userStore = useUserStore();
+const onlineStatus = useOnlineStatusStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
-const message: Message = {
-  authorId: authenticatedUserId,
-  content: 'Hello, World!',
-  id: '1',
-  timestamp: new Date().toISOString(),
-  attachments: [],
-  channelId: 'Global Channel',
-  read: false,
-};
+const messages: Message[] = [
+  {
+    authorId: authenticatedUserId,
+    content: 'Hello, World!',
+    id: '1',
+    timestamp: new Date().toISOString(),
+    attachments: [],
+    channelId: 'Global Channel',
+    read: false,
+  },
+  {
+    authorId: '038678a5-b6f1-45dc-b1da-9f3837f4cdc8',
+    content: 'Hello, World!',
+    id: '2',
+    timestamp: new Date().toISOString(),
+    attachments: [],
+    channelId: 'Global Channel',
+    read: false,
+  },
+  {
+    authorId: '2d0a4682-a7a3-4461-98bc-4b403a94f000',
+    content: 'Hello, World!',
+    id: '3',
+    timestamp: new Date().toISOString(),
+    attachments: [],
+    channelId: 'Global Channel',
+    read: false,
+  },
+];
 </script>
 
 <template>
@@ -45,7 +71,11 @@ const message: Message = {
     </nav>
     <main class="flex-1">
       <span class="text-red-500"> MAIN CONTENT HERE </span>
-      <MessageComponent :message="message" />
+      <MessageComponent
+        v-for="message in messages"
+        :key="message.id"
+        :message="message"
+      />
     </main>
   </div>
 </template>
