@@ -4,6 +4,7 @@ type MessageAttachment struct {
 	Id        string  `json:"id"`
 	MessageId string  `json:"messageId"`
 	Type      string  `json:"type"`
+	Filename  string  `json:"filename"`
 	Url       *string `json:"url"`
 }
 

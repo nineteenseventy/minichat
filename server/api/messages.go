@@ -52,6 +52,7 @@ func parseMessages(rows pgx.Rows, buffer *[]minichat.Message) error {
 				attachment.MessageId = message.Id
 				attachment.Type = attachmentType.String
 				attachment.Url = attachmentUrl
+				attachment.Filename = attachmentFilename.String
 				message.Attachments = append(message.Attachments, attachment)
 			}
 		}
