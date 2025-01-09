@@ -332,8 +332,47 @@ func patchMessageHandler(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, message)
 }
 
+func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	channelId := chi.URLParam(r, "channelId")
+	messageId := chi.URLParam(r, "messageId")
+	userId := serverutil.GetUserIdFromContext(ctx)
+
+	conn := database.GetDatabase()
+
+	var message minichat.Message
+	err := conn.QueryRow(
+		ctx,
+		"SELECT id, channel_id, author_id, content, timestamp, true FROM minichat.messages WHERE id = $1 AND channel_id = $2",
+		messageId,
+		channelId,
+	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &message.Timestamp, &message.Read)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if message.AuthorId != userId {
+		http.Error(w, "messages may only be deleted by their author", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = conn.Exec(
+		ctx,
+		"DELETE FROM minichat.messages WHERE id = $1",
+		messageId,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	util.JSONResponse(w, message)
+}
+
 func MessagesRouter(router chi.Router) {
 	router.Get("/messages/{channelId}", getMessagesHandler)
 	router.Post("/messages/{channelId}", postMessageHandler)
 	router.Patch("/messages/{channelId}/{messageId}", patchMessageHandler)
+	router.Delete("/messages/{channelId}/{messageId}", deleteMessageHandler)
 }
