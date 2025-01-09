@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router';
 import ChannelTitleComponent from '@/components/ChannelTitleComponent.vue';
 import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 import type { Message } from '@/interfaces/message.interface';
-import MessageComponent from '@/components/Message.component.vue';
+import MessageComponent from '@/components/MessageComponent.vue';
 import type { Channel } from '@/interfaces/channel.interface';
 import { useApi } from '@/composables/useApi';
 import Textarea from 'primevue/textarea';

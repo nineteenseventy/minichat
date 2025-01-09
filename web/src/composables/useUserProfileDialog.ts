@@ -9,7 +9,7 @@ export const useUserProfileDialog = function () {
   const dialog = useDialog();
 
   const UserProfileComponent = defineAsyncComponent(
-    () => import('@/components/UserProfile.dialog.vue'),
+    () => import('@/components/UserProfileDialog.vue'),
   );
 
   return (user: string) =>
