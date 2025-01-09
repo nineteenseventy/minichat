@@ -11,7 +11,7 @@ import type {
 import { useTimeoutPoll } from '@vueuse/core';
 import { useApi } from '@/composables/useApi';
 import { useRouter } from 'vue-router';
-import { MenuItemCommandEvent } from 'primevue/menuitem';
+import type { MenuItemCommandEvent } from 'primevue/menuitem';
 
 const router = useRouter();
 

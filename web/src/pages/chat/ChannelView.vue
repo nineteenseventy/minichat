@@ -7,10 +7,10 @@ import type { Message } from '@/interfaces/message.interface';
 import MessageComponent from '@/components/MessageComponent.vue';
 import type { Channel } from '@/interfaces/channel.interface';
 import { useApi } from '@/composables/useApi';
-import Textarea from 'primevue/textarea';
+import ChatInputComponent from '@/components/ChatInputComponent.vue';
 
 const route = useRoute();
-const channelId = route.params.id;
+const channelId = route.params.id as string;
 const { data: channel } = useApi(`/channels/${channelId}`).json<Channel>();
 
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
@@ -61,12 +61,8 @@ const messages: Message[] = [
       />
     </template>
     <template #footer>
-      <Textarea
-        autoResize
-        rows="1"
-        class="w-full"
-        style="min-height: 42px"
-      ></Textarea>
+      <ChatInputComponent :channelId="channelId" />
+      <!-- <Textarea :v-model="" autoResize rows="1" class="w-full"></Textarea> -->
     </template>
   </Card>
 </template>
