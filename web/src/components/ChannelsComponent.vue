@@ -10,6 +10,10 @@ import type {
 } from '@/interfaces/channel.interface';
 import { useTimeoutPoll } from '@vueuse/core';
 import { useApi } from '@/composables/useApi';
+import { useRouter } from 'vue-router';
+import { MenuItemCommandEvent } from 'primevue/menuitem';
+
+const router = useRouter();
 
 const menuItems = ref<MenuItem[]>([]);
 const selectedChannelId = ref<string | null>(null);
@@ -22,6 +26,19 @@ useTimeoutPoll(
   60000,
   { immediate: true },
 );
+
+function mapUrl(channelId: string): string {
+  return `/channels/${channelId}`;
+}
+
+function clickCommandFactory(
+  channelId: string,
+): (e: MenuItemCommandEvent) => void {
+  return (e: MenuItemCommandEvent) => {
+    e.originalEvent.preventDefault();
+    router.push(mapUrl(channelId));
+  };
+}
 
 function mapMenuItems(data: ChannelsResponse): MenuItem[] {
   return [
@@ -44,30 +61,33 @@ function mapMenuItems(data: ChannelsResponse): MenuItem[] {
 function mapPublicChannel(channel: PublicChannel): MenuItem {
   return {
     label: channel.title,
-    url: `/channels/${channel.id}`,
+    url: mapUrl(channel.id),
     badge: channel.unreadCount ? channel.unreadCount : null,
     key: channel.id,
     class: { 'font-bold': selectedChannelId.value === channel.id },
+    command: clickCommandFactory(channel.id),
   };
 }
 
 function mapDirectChannel(channel: DirectChannel): MenuItem {
   return {
     label: channel.title,
-    url: `/channels/${channel.id}`,
+    url: mapUrl(channel.id),
     badge: channel.unreadCount ? channel.unreadCount : null,
     key: channel.id,
     class: { 'font-bold': selectedChannelId.value === channel.id },
+    command: clickCommandFactory(channel.id),
   };
 }
 
 function mapGroupChannel(channel: GroupChannel): MenuItem {
   return {
     label: channel.title,
-    url: `/channels/${channel.id}`,
+    url: mapUrl(channel.id),
     badge: channel.unreadCount ? channel.unreadCount : null,
     key: channel.id,
     class: { 'font-bold': selectedChannelId.value === channel.id },
+    command: clickCommandFactory(channel.id),
   };
 }
 </script>
