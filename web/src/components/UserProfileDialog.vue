@@ -6,8 +6,8 @@ import type { DynamicDialogInstance } from 'primevue/dynamicdialogoptions';
 import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
-import UserPictureOnlineStatusComponent from './UserPictureOnlineStatus.component.vue';
-import SpinnerComponent from './Spinner.component.vue';
+import UserPictureOnlineStatusComponent from './UserPictureOnlineStatusComponent.vue';
+import SpinnerComponent from './SpinnerComponent.vue';
 
 interface DialogRef {
   value: DynamicDialogInstance;

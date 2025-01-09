@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Message } from '@/interfaces/message.interface';
 import Panel from 'primevue/panel';
-import UserComponent from './User.component.vue';
+import UserComponent from './UserComponent.vue';
 import { useRelativeFormattedDate } from '@/composables/useFormattedDate';
 import { computed } from 'vue';
 import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
