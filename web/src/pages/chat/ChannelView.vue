@@ -61,7 +61,12 @@ const messages: Message[] = [
       />
     </template>
     <template #footer>
-      <Textarea autoResize rows="1" class="w-full"></Textarea>
+      <Textarea
+        autoResize
+        rows="1"
+        class="w-full"
+        style="min-height: 42px"
+      ></Textarea>
     </template>
   </Card>
 </template>
