@@ -4,14 +4,21 @@ import type { Message } from '@/interfaces/message.interface';
 import Panel from 'primevue/panel';
 import Card from 'primevue/card';
 import Listbox from 'primevue/listbox';
-import { ref } from 'vue';
+import { onBeforeMount, ref } from 'vue';
 import UserComponent from '@/components/User.component.vue';
 import { useUserStore } from '@/stores/user.store';
+import { useTimeoutPoll } from '@vueuse/core';
+
+onBeforeMount(() => {
+  useTimeoutPoll(async () => await userStore.updateStore(), 60000, {
+    immediate: true,
+  });
+});
 
 const userStore = useUserStore();
 
 const message: Message = {
-  authorId: 'me',
+  authorId: userStore.authenticatedUserId,
   content: 'Hello, World!',
   id: '1',
   timestamp: new Date().toISOString(),

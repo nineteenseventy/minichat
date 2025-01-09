@@ -2,20 +2,25 @@
 import { useUserProfileDialog } from '@/composables/useUserProfileDialog';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatus.component.vue';
 import { useUserStore } from '@/stores/user.store';
+import { onBeforeUnmount } from 'vue';
 
 const props = defineProps<{
   userId: string;
 }>();
 
+onBeforeUnmount(() => userStore.unsubscribeUser(_userId));
+
 const openProfile = useUserProfileDialog();
-const user = useUserStore().getUser(props.userId);
+const userStore = useUserStore();
+const _userId = props.userId;
+const user = userStore.getUser(_userId);
 </script>
 
 <template>
-  <div class="user" @click="openProfile(userId)">
+  <div class="user" @click="openProfile(_userId)">
     <UserPictureOnlineStatusComponent
       :picture="user?.picture"
-      :user-id="userId"
+      :user-id="_userId"
     />
     <span class="username">
       {{ user?.username }}

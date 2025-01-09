@@ -12,9 +12,10 @@ import router from './router';
 import auth0 from './auth0';
 
 const app = createApp(App);
+const pinia = createPinia();
 
-app.use(createPinia());
 app.use(router);
+app.use(pinia);
 app.use(auth0);
 app.use(PrimeVue, {
   theme: {
