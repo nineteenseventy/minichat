@@ -5,6 +5,7 @@ import { createPinia } from 'pinia';
 
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
+import '../index.css';
 import DialogService from 'primevue/dialogservice';
 
 import App from './App.vue';
@@ -22,6 +23,10 @@ app.use(PrimeVue, {
     preset: Aura,
     options: {
       darkModeSelector: '.p-darkmode',
+      cssLayer: {
+        name: 'primevue',
+        order: 'tailwind-base, primevue, tailwind-utilities',
+      },
     },
   },
 });
