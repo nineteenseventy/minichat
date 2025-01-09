@@ -13,6 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nineteenseventy/minichat/core/database"
 	"github.com/nineteenseventy/minichat/core/http/util"
+	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/minichat"
 	coreutil "github.com/nineteenseventy/minichat/core/util"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
@@ -224,6 +225,115 @@ func getMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, util.NewResult(messages))
 }
 
+func postMessageHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	channelId := chi.URLParam(r, "channelId")
+	userId := serverutil.GetUserIdFromContext(ctx)
+
+	var basemessage minichat.MessageBase
+	err := httputil.JSONRequest(r, &basemessage)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if basemessage.Content == "" {
+		http.Error(w, "content is required", http.StatusBadRequest)
+		return
+	}
+
+	conn := database.GetDatabase()
+
+	var message minichat.Message
+	err = conn.QueryRow(
+		ctx,
+		`
+		INSERT INTO minichat.messages (channel_id, author_id, "content")
+		VALUES ($1, $2, $3)
+		RETURNING id, channel_id, author_id, "content", "timestamp", true
+	`,
+		channelId,
+		userId,
+		basemessage.Content,
+	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &message.Timestamp, &message.Read)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// update last read message timestamp
+	_, err = conn.Exec(
+		ctx,
+		`UPDATE minichat.channels_members
+		SET last_read_message_timestamp = $3
+		WHERE user_id = $1 AND channel_id = $2`,
+		userId,
+		channelId,
+		message.Timestamp,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	util.JSONResponse(w, message)
+}
+
+func patchMessageHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	channelId := chi.URLParam(r, "channelId")
+	messageId := chi.URLParam(r, "messageId")
+	userId := serverutil.GetUserIdFromContext(ctx)
+
+	var basemessage minichat.MessageBase
+	err := httputil.JSONRequest(r, &basemessage)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if basemessage.Content == "" {
+		http.Error(w, "content is required", http.StatusBadRequest)
+		return
+	}
+
+	conn := database.GetDatabase()
+
+	var message minichat.Message
+	err = conn.QueryRow(
+		ctx,
+		"SELECT id, channel_id, author_id, content, timestamp, true FROM minichat.messages WHERE id = $1 AND channel_id = $2",
+		messageId,
+		channelId,
+	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &message.Timestamp, &message.Read)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if message.AuthorId != userId {
+		http.Error(w, "messages may only be edited by their author", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = conn.Exec(
+		ctx,
+		"UPDATE minichat.messages SET content = $1 WHERE id = $2",
+		basemessage.Content,
+		messageId,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	message.Content = basemessage.Content
+
+	util.JSONResponse(w, message)
+}
+
 func MessagesRouter(router chi.Router) {
 	router.Get("/messages/{channelId}", getMessagesHandler)
+	router.Post("/messages/{channelId}", postMessageHandler)
+	router.Patch("/messages/{channelId}/{messageId}", patchMessageHandler)
 }
