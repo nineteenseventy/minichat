@@ -17,3 +17,7 @@ type Message struct {
 	Read        bool                `json:"read"`
 	Attachments []MessageAttachment `json:"attachments"`
 }
+
+type MessageBase struct {
+	Content string `json:"content"`
+}

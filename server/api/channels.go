@@ -244,9 +244,34 @@ func getChannelHandler(writer http.ResponseWriter, request *http.Request) {
 	util.JSONResponse(writer, channel)
 }
 
+func setLastReadHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	userId := serverutil.GetUserIdFromContext(ctx)
+	channelId := chi.URLParam(request, "channelId")
+
+	conn := database.GetDatabase()
+	_, err := conn.Exec(
+		ctx,
+		`
+		UPDATE minichat.channels_members
+		SET last_read_message_timestamp = NOW()
+		WHERE user_id = $1 AND channel_id = $2
+		`,
+		userId,
+		channelId,
+	)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusNoContent)
+}
+
 func ChannelsRouter(router chi.Router) {
 	router.Get("/channels/public", getChannelsPublicHandler)
 	router.Get("/channels/private", getChannelsPrivateHandler)
 	router.Get("/channels", getChannelsHandler)
 	router.Get("/channels/{channelId}", getChannelHandler)
+	router.Post("/channels/{channelId}/lastRead", setLastReadHandler)
 }
