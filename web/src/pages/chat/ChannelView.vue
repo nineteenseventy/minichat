@@ -15,15 +15,35 @@ const { data: channel } = useApi(`/channels/${channelId}`).json<Channel>();
 
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
-const message: Message = {
-  authorId: authenticatedUserId,
-  content: 'Hello, World!',
-  id: '1',
-  timestamp: new Date().toISOString(),
-  attachments: [],
-  channelId: 'Global Channel',
-  read: false,
-};
+const messages: Message[] = [
+  {
+    authorId: authenticatedUserId,
+    content: 'Hello, World!',
+    id: '1',
+    timestamp: new Date().toISOString(),
+    attachments: [],
+    channelId: 'Global Channel',
+    read: false,
+  },
+  {
+    authorId: '038678a5-b6f1-45dc-b1da-9f3837f4cdc8',
+    content: 'Hello, World!',
+    id: '2',
+    timestamp: new Date().toISOString(),
+    attachments: [],
+    channelId: 'Global Channel',
+    read: false,
+  },
+  {
+    authorId: '2d0a4682-a7a3-4461-98bc-4b403a94f000',
+    content: 'Hello, World!',
+    id: '3',
+    timestamp: new Date().toISOString(),
+    attachments: [],
+    channelId: 'Global Channel',
+    read: false,
+  },
+];
 </script>
 
 <template>
@@ -34,7 +54,11 @@ const message: Message = {
       />
     </template>
     <template #content>
-      <MessageComponent :message="message" />
+      <MessageComponent
+        v-for="message in messages"
+        :key="message.id"
+        :message="message"
+      />
     </template>
     <template #footer>
       <Textarea autoResize rows="1" class="w-full"></Textarea>
