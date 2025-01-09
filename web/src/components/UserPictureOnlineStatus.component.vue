@@ -1,20 +1,26 @@
 <script setup lang="ts">
 import { useOnlineStatusStore } from '@/stores/onlineStatus.store';
 import UserPictureComponent from './UserPicture.component.vue';
+import { onBeforeUnmount } from 'vue';
 
 const props = defineProps<{
   userId: string;
 }>();
 
+onBeforeUnmount(() => {
+  onlineStatusStore.unsubscribeOnlineStatus(_userId);
+});
+
 const onlineStatusStore = useOnlineStatusStore();
-const online = onlineStatusStore.getUserOnlineStatus(props.userId);
+const _userId = props.userId;
+const onlineStatus = onlineStatusStore.getOnlineStatus(_userId);
 </script>
 
 <template>
   <UserPictureComponent
-    :userId="userId"
+    :userId="_userId"
     class="outline outline-2 outline-offset-2"
-    :class="online"
+    :class="onlineStatus"
   />
 </template>
 
@@ -23,7 +29,7 @@ const online = onlineStatusStore.getUserOnlineStatus(props.userId);
   outline-color: green;
 }
 .offline {
-  outline-color: red;
+  outline-color: gray;
 }
 .away {
   outline-color: yellow;
