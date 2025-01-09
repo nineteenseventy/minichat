@@ -13,3 +13,8 @@ type UserProfile struct {
 	Bio      *string `json:"bio"`
 	Color    *string `json:"color"`
 }
+
+type UserStatus struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
+}
