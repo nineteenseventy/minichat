@@ -55,7 +55,7 @@ const bio = computed(() => {
       >Profile Could not be retrieved!</span
     >
     <div
-      class="mt-4 flex flex-col bg-transparent bg-opacity-30 rounded-lg px-2 py-4 min-h-20"
+      class="mt-4 flex flex-col bg-black bg-opacity-30 rounded-lg px-2 py-4 min-h-20"
     >
       <span class="font-bold mb-2">Bio</span>
       <div class="flex flex-col">
