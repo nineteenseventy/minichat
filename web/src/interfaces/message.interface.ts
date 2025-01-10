@@ -6,7 +6,7 @@ export interface Message {
   /**
    * @kind iso8601
    */
-  timestamp?: string;
+  timestamp: string;
   read: boolean;
   attachments: MessageAttachment[];
 }
