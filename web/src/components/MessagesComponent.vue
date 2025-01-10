@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineProps, effect, watch } from 'vue';
+import { computed, defineProps, watch } from 'vue';
 import MessageComponent from '@/components/MessageComponent.vue';
 import { useMessageStore } from '@/stores/messageStore';
 
