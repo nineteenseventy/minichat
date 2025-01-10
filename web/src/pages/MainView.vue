@@ -7,19 +7,25 @@ import { useTimeoutPoll } from '@vueuse/core';
 import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 import ChannelsComponent from '@/components/ChannelsComponent.vue';
 import { useOnlineStatusStore } from '@/stores/onlineStatus.store';
+import { useChannelStore } from '@/stores/channel.store';
 
 onBeforeMount(() => {
   useTimeoutPoll(async () => await userStore.updateStore(), 60000, {
     immediate: true,
   });
 
-  useTimeoutPoll(async () => await onlineStatus.updateStore(), 10000, {
+  useTimeoutPoll(async () => await onlineStatusStore.updateStore(), 10000, {
+    immediate: true,
+  });
+
+  useTimeoutPoll(async () => await channelStore.updateStore(), 60000, {
     immediate: true,
   });
 });
 
 const userStore = useUserStore();
-const onlineStatus = useOnlineStatusStore();
+const onlineStatusStore = useOnlineStatusStore();
+const channelStore = useChannelStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 </script>
 

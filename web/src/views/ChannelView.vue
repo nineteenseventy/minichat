@@ -1,31 +1,30 @@
 <script setup lang="ts">
 import Card from 'primevue/card';
-import { useRoute } from 'vue-router';
 import ChannelTitleComponent from '@/components/ChannelTitleComponent.vue';
-import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 import type { Message } from '@/interfaces/message.interface';
 import MessageComponent from '@/components/MessageComponent.vue';
-import type { Channel } from '@/interfaces/channel.interface';
-import { useApi } from '@/composables/useApi';
 import ChatInputComponent from '@/components/ChatInputComponent.vue';
 import { useMessageStore } from '@/stores/messageStore';
-
-const route = useRoute();
-const channelId = route.params.id as string;
-const { data: channel } = useApi(`/channels/${channelId}`).json<Channel>();
-
-const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
+import { effect } from 'vue';
+import { useRouteParam } from '@/composables/useRouteParam';
 
 const messageStore = useMessageStore();
-const messages = messageStore.getMessages(channelId);
+
+const channelId = useRouteParam('channelId');
+
+let messages: Message[] = [];
+
+effect(() => {
+  if (channelId.value) {
+    messages = messageStore.getMessages(channelId.value);
+  }
+});
 </script>
 
 <template>
   <Card class="h-full">
     <template #title>
-      <ChannelTitleComponent
-        :channelTitle="channel?.title ?? 'loading channel name...'"
-      />
+      <ChannelTitleComponent :channelId="channelId!" />
     </template>
     <template #content>
       <MessageComponent

@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import auth0 from '../auth0';
 import { initializeAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
 import MainView from '@/pages/MainView.vue';
-import ChatView from '@/pages/chat/ChannelView.vue';
+import ChatView from '@/views/ChannelView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,7 +27,7 @@ const router = createRouter({
           redirect: '/',
         },
         {
-          path: 'channels/:id',
+          path: 'channels/:channelId',
           name: 'channels',
           component: ChatView,
         },

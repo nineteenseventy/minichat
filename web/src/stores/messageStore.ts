@@ -1,18 +1,8 @@
 import { defineStore } from 'pinia';
+import type { Message } from '@/interfaces/message.interface';
 import { ref } from 'vue';
 
-import type { Message } from '@/interfaces/message.interface';
-
 const testMessages: Message[] = [
-  {
-    authorId: '2d0a4682-a7a3-4461-98bc-4b403a94f000',
-    content: 'Hello, World!',
-    id: '1',
-    timestamp: new Date().toISOString(),
-    attachments: [],
-    channelId: 'Global Channel',
-    read: false,
-  },
   {
     authorId: '038678a5-b6f1-45dc-b1da-9f3837f4cdc8',
     content: 'Hello, World!',
@@ -33,62 +23,41 @@ const testMessages: Message[] = [
   },
 ];
 
-export const useMessageStore = defineStore('messageDrafts', () => {
-  const messages = ref<Message[]>([]);
-  const PAGE_SIZE = 20;
-  function storeMessages(messagesToStore: Message[] | Message) {
-    if (Array.isArray(messagesToStore)) {
-      messages.value.push(...messagesToStore);
-    } else {
-      messages.value.push(messagesToStore);
-    }
-  }
-  async function getMessages(
-    channelId: string,
-    fromTimestamp?: Date | string,
-    reverse?: boolean,
-  ): Promise<Message[]> {
-    const channelMessages = messages.value.filter(
-      (v) => v.channelId === channelId,
-    );
-    if (
-      channelMessages.length === 0 ||
-      (fromTimestamp && _needsFetching(channelMessages, fromTimestamp, reverse))
-    ) {
-      await _fetchMessages(channelId, fromTimestamp, reverse);
-      return messages.value;
-    }
-    return [];
+interface ClearMessagesOptions {
+  channelId?: string;
+  before?: Date;
+  after?: Date;
+}
 
-    function _needsFetching(
-      channelMessages: Message[],
-      fromtimestamp: Date | string,
-      reverse?: boolean,
-    ): boolean {
-      if (channelMessages.length === 0) return true;
-      const timestamp = new Date(fromtimestamp);
-      if (reverse) {
-        return new Date(channelMessages[0].timestamp) > timestamp;
-      } else {
-        return (
-          new Date(channelMessages[channelMessages.length - 1].timestamp) <
-          timestamp
-        );
-      }
-    }
-    async function _fetchMessages(
-      channelId: string,
-      fromTimestamp: string,
-      reverse: boolean,
-    ) {
-      const fetchedMessages = testMessages.find(
-        (v) => v.channelId == channelId,
-      );
-      if (reverse) {
-        fetchedMessages.reverse();
-      }
-      storeMessages(fetchedMessages);
-    }
+export const useMessageStore = defineStore('message', () => {
+  const messages = ref<Message[]>(testMessages);
+
+  function storeMessage(message: Message) {
+    messages.value.push(message);
   }
-  return { messages, getMessages, storeMessages };
+
+  function getMessage(channelId: string) {
+    return messages.value.filter((v) => v.channelId === channelId);
+  }
+
+  function getMessages(channelId?: string) {
+    if (channelId) {
+      // return messages.value.filter((v) => v.channelId === channelId);
+      return messages.value.map((v) => ({ ...v, channelId }));
+    }
+    return messages.value;
+  }
+
+  function clearMessages(options: ClearMessagesOptions) {
+    const filters: ((v: Message) => boolean)[] = [];
+
+    const { channelId, before, after } = options;
+    if (channelId) filters.push((v) => v.channelId === channelId);
+    if (before) filters.push((v) => new Date(v.timestamp) < before);
+    if (after) filters.push((v) => new Date(v.timestamp) > after);
+
+    messages.value = messages.value.filter((v) => filters.every((f) => f(v)));
+  }
+
+  return { messages, storeMessage, getMessage, getMessages, clearMessages };
 });

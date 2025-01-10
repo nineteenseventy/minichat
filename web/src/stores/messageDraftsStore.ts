@@ -11,7 +11,8 @@ export const useMessageDraftsStore = defineStore('messageDrafts', () => {
   function getMessageDraft(channelId: string) {
     return messageDrafts.value.find((v) => v.channelId === channelId)?.content;
   }
-  function setMessageDraft(channelId: string, content: string) {
+  function setMessageDraft(channelId: string, content?: string) {
+    if (!content) return;
     messageDrafts.value.push({
       channelId: channelId,
       content: content,

@@ -1,29 +1,27 @@
 <script setup lang="ts">
 import Menu from 'primevue/menu';
 import type { MenuItem } from 'primevue/menuitem';
-import { ref } from 'vue';
-import type {
-  ChannelsResponse,
-  PublicChannel,
-  DirectChannel,
-  GroupChannel,
-} from '@/interfaces/channel.interface';
+import { computed, ref, watch } from 'vue';
 import { useTimeoutPoll } from '@vueuse/core';
 import { useApi } from '@/composables/useApi';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import type { MenuItemCommandEvent } from 'primevue/menuitem';
+import { unpackRouterParam } from '@/utils/router';
+import { useChannelStore } from '@/stores/channel.store';
+import type { Channel } from '@/interfaces/channel.interface';
 
 const router = useRouter();
+const route = useRoute();
+const channelStore = useChannelStore();
 
-const menuItems = ref<MenuItem[]>([]);
-const selectedChannelId = ref<string | null>(null);
+const selectedChannelId = ref<string | undefined>();
 
-useTimeoutPoll(
-  async () => {
-    const response = await useApi('/channels').json<ChannelsResponse>();
-    menuItems.value = mapMenuItems(response.data.value!);
+watch(
+  () => unpackRouterParam(route.params.channelId),
+  (newChannelId, oldChannelId) => {
+    if (newChannelId === oldChannelId) return;
+    selectedChannelId.value = newChannelId;
   },
-  60000,
   { immediate: true },
 );
 
@@ -40,47 +38,29 @@ function clickCommandFactory(
   };
 }
 
-function mapMenuItems(data: ChannelsResponse): MenuItem[] {
+const menuItems = computed(() => {
+  return mapMenuItems(channelStore.channels);
+});
+
+function mapMenuItems(channels: Channel[]): MenuItem[] {
   return [
     {
       label: 'Public Channels',
-      items: data.public.map(mapPublicChannel),
+      items: channels.filter((c) => c.type === 'public').map(mapChannel),
     },
     {
       separator: true,
     },
     {
       label: 'Private Channels',
-      items: data.private.map((c) =>
-        c.type === 'group' ? mapGroupChannel(c) : mapDirectChannel(c),
-      ),
+      items: channels
+        .filter((c) => ['direct', 'group'].includes(c.type))
+        .map(mapChannel),
     },
   ];
 }
 
-function mapPublicChannel(channel: PublicChannel): MenuItem {
-  return {
-    label: channel.title,
-    url: mapUrl(channel.id),
-    badge: channel.unreadCount ? channel.unreadCount : null,
-    key: channel.id,
-    class: { 'font-bold': selectedChannelId.value === channel.id },
-    command: clickCommandFactory(channel.id),
-  };
-}
-
-function mapDirectChannel(channel: DirectChannel): MenuItem {
-  return {
-    label: channel.title,
-    url: mapUrl(channel.id),
-    badge: channel.unreadCount ? channel.unreadCount : null,
-    key: channel.id,
-    class: { 'font-bold': selectedChannelId.value === channel.id },
-    command: clickCommandFactory(channel.id),
-  };
-}
-
-function mapGroupChannel(channel: GroupChannel): MenuItem {
+function mapChannel(channel: Channel): MenuItem {
   return {
     label: channel.title,
     url: mapUrl(channel.id),
@@ -93,7 +73,7 @@ function mapGroupChannel(channel: GroupChannel): MenuItem {
 </script>
 
 <template>
-  <Menu :model="menuItems" />
+  <Menu :model="menuItems" :key="selectedChannelId" />
 </template>
 
 <style lang="css">
