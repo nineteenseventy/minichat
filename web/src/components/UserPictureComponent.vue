@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import defaultUser from '@/assets/images/default-user.png';
-import { useUserStore } from '@/stores/user.store';
+import { useUserStore } from '@/stores/userStore';
 import { onBeforeUnmount } from 'vue';
 
 const props = defineProps<{

@@ -1,42 +1,44 @@
 <script setup lang="ts">
-import type { Message } from '@/interfaces/message.interface';
 import Panel from 'primevue/panel';
 import UserComponent from './UserComponent.vue';
 import { useRelativeFormattedDate } from '@/composables/useFormattedDate';
 import { computed } from 'vue';
-import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
+import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
+import { parseDate } from '@/utils/date/parseDate';
+import { useMessageStore } from '@/stores/messageStore';
+
+const messageStore = useMessageStore();
 
 const props = defineProps<{
-  /**
-   * The message content.
-   */
-  message: Message;
+  messageId: string;
 }>();
 
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
+const message = messageStore.getMessage(computed(() => props.messageId));
+
 const timestamp = computed(() => {
-  if (!props.message.timestamp) return '';
-  const date = new Date(props.message.timestamp);
+  if (!message.value?.timestamp) return '';
+  const date = parseDate(message.value.timestamp);
   return useRelativeFormattedDate(date);
 });
 
 const isMyMessage = computed(() => {
-  return props.message.authorId === authenticatedUserId;
+  return message.value?.authorId === authenticatedUserId;
 });
 
 function editMessage() {
-  console.log('Edit message');
+  throw new Error('Not implemented');
 }
 function deleteMessage() {
-  console.log('Delete message');
+  throw new Error('Not implemented');
 }
 </script>
 
 <template>
   <Panel>
     <template #header>
-      <UserComponent :userId="message.authorId" class="w-full" />
+      <UserComponent v-if="message" :userId="message.authorId" class="w-full" />
       <div class="flex justify-end gap-2">
         <span
           v-if="isMyMessage"
@@ -55,7 +57,7 @@ function deleteMessage() {
       </div>
     </template>
     <span class="content">
-      {{ message.content }}
+      {{ message?.content }}
     </span>
     <template #footer>
       <span class="text-xs">

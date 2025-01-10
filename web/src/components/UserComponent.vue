@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUserProfileDialog } from '@/composables/useUserProfileDialog';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatusComponent.vue';
-import { useUserStore } from '@/stores/user.store';
+import { useUserStore } from '@/stores/userStore';
 import { onBeforeUnmount } from 'vue';
 
 const props = defineProps<{

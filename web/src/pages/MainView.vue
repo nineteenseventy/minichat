@@ -2,12 +2,12 @@
 import Card from 'primevue/card';
 import { onBeforeMount } from 'vue';
 import UserComponent from '@/components/UserComponent.vue';
-import { useUserStore } from '@/stores/user.store';
+import { useUserStore } from '@/stores/userStore';
 import { useTimeoutPoll } from '@vueuse/core';
-import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
+import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import ChannelsComponent from '@/components/ChannelsComponent.vue';
-import { useOnlineStatusStore } from '@/stores/onlineStatus.store';
-import { useChannelStore } from '@/stores/channel.store';
+import { useOnlineStatusStore } from '@/stores/onlineStatusStore';
+import { useChannelStore } from '@/stores/channelStore';
 
 onBeforeMount(() => {
   useTimeoutPoll(async () => await userStore.updateStore(), 60000, {

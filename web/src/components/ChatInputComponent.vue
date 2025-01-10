@@ -4,7 +4,7 @@ import { useMessageDraftsStore } from '@/stores/messageDraftsStore';
 import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
 
-const props = defineProps<{ channelId?: string }>();
+const props = defineProps<{ channelId: string }>();
 
 const draftsStore = useMessageDraftsStore();
 const text = ref('');

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useChannelStore } from '@/stores/channel.store';
+import { useChannelStore } from '@/stores/channelStore';
 import { computed } from 'vue';
 
 const channelStore = useChannelStore();
@@ -15,3 +15,4 @@ const channel = channelStore.getChannel(computed(() => props.channelId));
     <span>{{ channel?.title }}</span>
   </div>
 </template>
+mes

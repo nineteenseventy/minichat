@@ -3,7 +3,7 @@ import { useApi } from '@/composables/useApi';
 import type { UserProfile } from '@/interfaces/userProfile.interface';
 import { computed, inject } from 'vue';
 import type { DynamicDialogInstance } from 'primevue/dynamicdialogoptions';
-import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
+import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatusComponent.vue';

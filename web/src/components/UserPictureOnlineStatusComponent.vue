@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useOnlineStatusStore } from '@/stores/onlineStatus.store';
+import { useOnlineStatusStore } from '@/stores/onlineStatusStore';
 import UserPictureComponent from './UserPictureComponent.vue';
 import { onBeforeUnmount } from 'vue';
 

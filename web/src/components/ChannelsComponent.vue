@@ -2,12 +2,10 @@
 import Menu from 'primevue/menu';
 import type { MenuItem } from 'primevue/menuitem';
 import { computed, ref, watch } from 'vue';
-import { useTimeoutPoll } from '@vueuse/core';
-import { useApi } from '@/composables/useApi';
 import { useRoute, useRouter } from 'vue-router';
 import type { MenuItemCommandEvent } from 'primevue/menuitem';
 import { unpackRouterParam } from '@/utils/router';
-import { useChannelStore } from '@/stores/channel.store';
+import { useChannelStore } from '@/stores/channelStore';
 import type { Channel } from '@/interfaces/channel.interface';
 
 const router = useRouter();

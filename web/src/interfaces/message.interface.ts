@@ -1,3 +1,10 @@
+export interface GetMessagesQuery {
+  start?: string;
+  count?: number;
+  before?: string;
+  after?: string;
+}
+
 export interface Message {
   id: string;
   channelId: string;

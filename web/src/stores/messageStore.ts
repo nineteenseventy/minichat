@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia';
-import type { Message } from '@/interfaces/message.interface';
-import { ref } from 'vue';
+import type { GetMessagesQuery, Message } from '@/interfaces/message.interface';
+import { computed, ref, type Ref } from 'vue';
+import { useApi } from '@/composables/useApi';
+import type { Result } from '@/interfaces/util.interface';
+import { parseDate } from '@/utils/date/parseDate';
+import { params } from '@/utils/url';
 
 const testMessages: Message[] = [
   {
@@ -36,16 +40,48 @@ export const useMessageStore = defineStore('message', () => {
     messages.value.push(message);
   }
 
-  function getMessage(channelId: string) {
-    return messages.value.filter((v) => v.channelId === channelId);
+  function getMessage(messageId: Ref<string>) {
+    return computed(() => messages.value.find((v) => v.id === messageId.value));
   }
 
-  function getMessages(channelId?: string) {
-    if (channelId) {
-      // return messages.value.filter((v) => v.channelId === channelId);
-      return messages.value.map((v) => ({ ...v, channelId }));
-    }
-    return messages.value;
+  async function loadMessages(
+    channelId: string,
+    before?: Date,
+    after?: Date,
+    count = 50,
+  ) {
+    const queryData: GetMessagesQuery = {
+      count,
+      before: before?.toISOString(),
+      after: after?.toISOString(),
+    };
+    const request = useApi(`/messages/${channelId}?${params(queryData)}`);
+    const { data } = await request.json<Result<Message[]>>();
+    if (!data.value) return;
+    const newMessages = data.value.data ?? [];
+    messages.value = newMessages.concat(messages.value);
+    sortMessages();
+  }
+
+  function sortMessages() {
+    messages.value.sort(
+      (a, b) =>
+        parseDate(a.timestamp).getTime() - parseDate(b.timestamp).getTime(),
+    );
+  }
+
+  function getMessages(channelId: Ref<string>) {
+    return computed(() =>
+      messages.value.filter((v) => v.channelId === channelId.value),
+    );
+  }
+
+  function getMessageIds(channelId: Ref<string>) {
+    return computed(() =>
+      messages.value
+        .filter((v) => v.channelId === channelId.value)
+        .map((v) => v.id),
+    );
   }
 
   function clearMessages(options: ClearMessagesOptions) {
@@ -59,5 +95,13 @@ export const useMessageStore = defineStore('message', () => {
     messages.value = messages.value.filter((v) => filters.every((f) => f(v)));
   }
 
-  return { messages, storeMessage, getMessage, getMessages, clearMessages };
+  return {
+    messages,
+    storeMessage,
+    getMessage,
+    getMessages,
+    clearMessages,
+    loadMessages,
+    getMessageIds,
+  };
 });
