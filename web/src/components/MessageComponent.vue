@@ -58,27 +58,25 @@ const messageRows = computed(() => content.value.split('\n'));
 </script>
 
 <template>
-  <div class="px-4 py-2 hover:bg-white hover:bg-opacity-5 rounded-content">
+  <div class="hover:bg-white hover:bg-opacity-5 rounded-content message">
     <div class="flex flex-row pb-1">
       <UserComponent
         v-if="message"
         :userId="message.authorId"
         class="w-full h-7"
       />
-      <div class="flex gap-2">
+      <div class="flex gap-2 controls invisible">
         <span
           v-if="isMyMessage"
-          class="cursor-pointer hover:underline"
+          class="cursor-pointer hover:underline pi pi-pencil"
           @click="mode = 'edit'"
         >
-          Edit
         </span>
         <span
           v-if="isMyMessage"
-          class="cursor-pointer hover:underline"
+          class="cursor-pointer hover:underline pi pi-trash"
           @click="deleteMessage()"
         >
-          Delete
         </span>
       </div>
     </div>
@@ -101,3 +99,9 @@ const messageRows = computed(() => content.value.split('\n'));
     </span>
   </div>
 </template>
+
+<style scoped lang="scss">
+.message:hover .controls {
+  visibility: inherit;
+}
+</style>

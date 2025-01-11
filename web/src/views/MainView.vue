@@ -35,7 +35,7 @@ const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
       <ChannelsComponent class="h-full" />
       <Card class="user-card">
         <template #content>
-          <UserComponent :userId="authenticatedUserId" />
+          <UserComponent :userId="authenticatedUserId" class="h-10" />
         </template>
       </Card>
     </nav>

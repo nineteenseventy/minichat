@@ -42,6 +42,7 @@ function onScroll(event: Event) {
       v-for="messageId in messageIds"
       :key="messageId"
       :messageId="messageId"
+      class="px-2 py-2"
     />
   </div>
 </template>
