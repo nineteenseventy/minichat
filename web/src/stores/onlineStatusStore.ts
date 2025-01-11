@@ -3,7 +3,7 @@ import type {
   UserStatus,
 } from '@/interfaces/user.interface';
 import { defineStore } from 'pinia';
-import { computed, ref, shallowRef } from 'vue';
+import { computed, ref } from 'vue';
 import { useApi } from '@/composables/useApi';
 
 interface StoredUserOnlineStatus {
@@ -61,6 +61,13 @@ export const useOnlineStatusStore = defineStore('onlineStatus', () => {
       onlineStatuses.value.find((v) => v.id === userId),
     );
     if (!storedOnlineStatus.value) return;
+    if (storedOnlineStatus.value.referenceCounter === 0) {
+      console.warn(
+        'unsubscribeOnlineStatus was called to often for user',
+        userId,
+      );
+      return;
+    }
     storedOnlineStatus.value.referenceCounter--;
   }
 
