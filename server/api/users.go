@@ -215,6 +215,7 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 			"channel".type,
 			"channel".created_at,
 			"direct_partner".username AS "title"
+			COUNT("unread_messages".*) as "unread_count"
 		FROM minichat.channels AS "channel"
 		
 		-- member me
@@ -301,8 +302,7 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		channel.CreatedAt = coreutil.FormatTimestampz(createdAt)
-		var unreadCount int = 0
-		channel.UnreadCount = &unreadCount
+		channel.UnreadCount = 0
 	} else {
 		rows.Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title)
 		channel.CreatedAt = coreutil.FormatTimestampz(createdAt)

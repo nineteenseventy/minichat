@@ -1,10 +1,10 @@
 package minichat
 
 type Channel struct {
-	Id          *string `json:"id"`
+	Id          string  `json:"id"`
 	Type        string  `json:"type"`
 	CreatedAt   *string `json:"createdAt"`
-	UnreadCount *int    `json:"unreadCount"`
+	UnreadCount int64   `json:"unreadCount"`
 	Title       string  `json:"title"`
 	Description *string `json:"description"`
 }

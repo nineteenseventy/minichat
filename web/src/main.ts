@@ -12,6 +12,7 @@ import DialogService from 'primevue/dialogservice';
 import App from './App.vue';
 import router from './router';
 import auth0 from './auth0';
+import Ripple from 'primevue/ripple';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -32,5 +33,6 @@ app.use(PrimeVue, {
   },
 });
 app.use(DialogService);
+app.directive('ripple', Ripple);
 
 app.mount('app-root');

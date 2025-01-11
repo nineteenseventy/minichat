@@ -7,6 +7,7 @@ import type { MenuItemCommandEvent } from 'primevue/menuitem';
 import { unpackRouterParam } from '@/utils/router';
 import { useChannelStore } from '@/stores/channelStore';
 import type { Channel } from '@/interfaces/channel.interface';
+import Badge from 'primevue/badge';
 
 const router = useRouter();
 const route = useRoute();
@@ -59,10 +60,15 @@ function mapMenuItems(channels: Channel[]): MenuItem[] {
 }
 
 function mapChannel(channel: Channel): MenuItem {
+  let badge: string | null = null;
+  if (channel.unreadCount) {
+    badge = channel.unreadCount.toString();
+  }
+
   return {
     label: channel.title,
     url: mapUrl(channel.id),
-    badge: channel.unreadCount ? channel.unreadCount : null,
+    badge,
     key: channel.id,
     class: { 'font-bold': selectedChannelId.value === channel.id },
     command: clickCommandFactory(channel.id),
@@ -71,7 +77,20 @@ function mapChannel(channel: Channel): MenuItem {
 </script>
 
 <template>
-  <Menu :model="menuItems" :key="selectedChannelId" />
+  <Menu :model="menuItems" :key="selectedChannelId">
+    <template #item="{ item, props }">
+      <a v-ripple class="flex items-center" v-bind="props.action">
+        <span :class="item.icon" />
+        <span>{{ item.label }}</span>
+        <Badge v-if="item.badge" class="ml-auto" :value="item.badge" />
+        <span
+          v-if="item.shortcut"
+          class="ml-auto border border-surface rounded bg-emphasis text-muted-color text-xs p-1"
+          >{{ item.shortcut }}</span
+        >
+      </a>
+    </template>
+  </Menu>
 </template>
 
 <style lang="css">
