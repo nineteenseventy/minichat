@@ -153,7 +153,7 @@ func getChannelHandler(writer http.ResponseWriter, request *http.Request) {
 	httputil.JSONResponse(writer, channel)
 }
 
-func setLastReadHandler(writer http.ResponseWriter, request *http.Request) {
+func setReadHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	userId := serverutil.GetUserIdFromContext(ctx)
 	channelId := chi.URLParam(request, "channelId")
@@ -180,5 +180,5 @@ func setLastReadHandler(writer http.ResponseWriter, request *http.Request) {
 func ChannelsRouter(router chi.Router) {
 	router.Get("/channels", getChannelsHandler)
 	router.Get("/channels/{channelId}", getChannelHandler)
-	router.Post("/channels/{channelId}/lastRead", setLastReadHandler)
+	router.Patch("/channels/{channelId}/setRead", setReadHandler)
 }

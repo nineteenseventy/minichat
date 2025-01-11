@@ -2,8 +2,10 @@
 import { computed, watch } from 'vue';
 import MessageComponent from '@/components/MessageComponent.vue';
 import { useMessageStore } from '@/stores/messageStore';
+import { useChannelStore } from '@/stores/channelStore';
 
 const messageStore = useMessageStore();
+const channelStore = useChannelStore();
 
 const props = defineProps<{
   channelId: string;
@@ -17,6 +19,7 @@ watch(
     if (beforeChannelId)
       messageStore.clearMessages({ channelId: beforeChannelId });
     await messageStore.loadMessages(channelId);
+    await channelStore.setRead(channelId);
   },
   { immediate: true },
 );

@@ -54,5 +54,18 @@ export const useChannelStore = defineStore('channel', () => {
     return channel.value;
   }
 
-  return { channels, getChannel, updateStore, storeChannel, getDirectChannel };
+  async function setRead(channelId: string) {
+    await useApi(`/channels/${channelId}/setRead`).patch();
+    const channelIndex = channels.value.findIndex((v) => v.id === channelId);
+    if (channelIndex !== -1) channels.value[channelIndex].unreadCount = 0;
+  }
+
+  return {
+    channels,
+    getChannel,
+    updateStore,
+    storeChannel,
+    getDirectChannel,
+    setRead,
+  };
 });
