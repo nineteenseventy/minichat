@@ -106,6 +106,7 @@ export const useMessageStore = defineStore('message', () => {
     const { data } = await request.json<Message>();
     if (!data.value) return;
     storeMessage(data.value);
+    sortMessages();
   }
 
   async function updateMessage(messageId: string, newMessage: NewMessage) {

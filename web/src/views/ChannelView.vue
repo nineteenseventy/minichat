@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Card from 'primevue/card';
 import ChannelTitleComponent from '@/components/ChannelTitleComponent.vue';
-import ChatInputComponent from '@/components/ChatInputComponent.vue';
+import ChatInputComponent from '@/components/ChatInputNewComponent.vue';
 import { useRouteParam } from '@/composables/useRouteParam';
 import MessagesComponent from '@/components/MessagesComponent.vue';
 

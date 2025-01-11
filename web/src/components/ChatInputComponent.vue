@@ -1,55 +1,32 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useMessageDraftsStore } from '@/stores/messageDraftsStore';
-import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
-import { useMessageStore } from '@/stores/messageStore';
-import type { NewMessage } from '@/interfaces/message.interface';
+import Textarea from 'primevue/textarea';
 
-const messageStore = useMessageStore();
-const draftsStore = useMessageDraftsStore();
+const model = defineModel();
 
-const props = defineProps<{ channelId: string }>();
-
-const content = ref('');
-
-if (props.channelId) {
-  const draft = draftsStore.getMessageDraft(props.channelId);
-  if (draft) content.value = draft;
-}
-
-async function onSend() {
-  const contentValue = content.value.trim();
-  if (contentValue.length < 1) return;
-
-  const newMessage: NewMessage = {
-    content: contentValue,
-  };
-
-  await messageStore.sendMessage(props.channelId, newMessage);
-  content.value = '';
-  draftsStore.clearMessageDraft(props.channelId);
-}
+const emit = defineEmits<{
+  onSave: [];
+}>();
 
 async function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault();
-    await onSend();
+    emit('onSave');
   }
 }
 </script>
 
 <template>
-  <div class="flex flex-row gap-3 items-center">
+  <div class="flex flex-row gap-3">
     <Textarea
       autoResize
       fluid
       rows="1"
       class="min-h-11 max-h-36"
-      v-model="content"
+      v-model="model"
       @keydown="onKeydown($event)"
     />
-    <Button icon="pi pi-send" class="self-end" @click="onSend()" />
+    <Button icon="pi pi-send" class="self-end" @click="emit('onSave')" />
   </div>
 </template>
 
