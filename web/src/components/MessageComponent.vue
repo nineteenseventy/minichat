@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import UserComponent from './UserComponent.vue';
 import { useRelativeFormattedDate } from '@/composables/useFormattedDate';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import { parseDate } from '@/utils/date/parseDate';
 import { useMessageStore } from '@/stores/messageStore';
+import ChatInputComponent from './ChatInputComponent.vue';
+import type { NewMessage } from '@/interfaces/message.interface';
 
 const messageStore = useMessageStore();
 
@@ -13,7 +15,6 @@ const props = defineProps<{
 }>();
 
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
-
 const message = messageStore.getMessage(computed(() => props.messageId));
 
 const timestamp = computed(() => {
@@ -26,15 +27,34 @@ const isMyMessage = computed(() => {
   return message.value?.authorId === authenticatedUserId;
 });
 
-function editMessage() {
-  throw new Error('Not implemented');
-}
+const mode = ref<'view' | 'edit'>('view');
+
 function deleteMessage() {
   if (!message.value?.id) return;
   messageStore.deleteMessage(message.value.id);
 }
 
-const messageContent = computed(() => message.value?.content.split('\n'));
+const content = ref('');
+watch(
+  () => message.value?.content,
+  (contentValue) => {
+    content.value = contentValue ?? '';
+  },
+  { immediate: true },
+);
+
+async function onAfterEdit() {
+  if (!message.value?.id) return;
+  const updatedMessage: NewMessage = {
+    content: content.value,
+  };
+
+  await messageStore.updateMessage(message.value.id, updatedMessage);
+
+  mode.value = 'view';
+}
+
+const messageRows = computed(() => content.value.split('\n'));
 </script>
 
 <template>
@@ -49,7 +69,7 @@ const messageContent = computed(() => message.value?.content.split('\n'));
         <span
           v-if="isMyMessage"
           class="cursor-pointer hover:underline"
-          @click="editMessage()"
+          @click="mode = 'edit'"
         >
           Edit
         </span>
@@ -62,15 +82,20 @@ const messageContent = computed(() => message.value?.content.split('\n'));
         </span>
       </div>
     </div>
-    <span class="flex flex-col gap-1">
+    <span class="flex flex-col gap-1" v-if="mode === 'view'">
       <span
-        v-for="(message, index) in messageContent"
+        v-for="(message, index) in messageRows"
         :key="index"
         class="break-words min-h-4"
       >
         {{ message }}
       </span>
     </span>
+    <ChatInputComponent
+      v-if="mode === 'edit'"
+      v-model="content"
+      @onSave="onAfterEdit()"
+    />
     <span class="text-xs/3">
       {{ timestamp }}
     </span>
