@@ -207,19 +207,20 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	conn := database.GetDatabase()
-
-	var channel minichat.Channel
-	var createdAt pgtype.Timestamptz
-	err := conn.QueryRow(
+	rows, err := conn.Query(
 		ctx,
 		`
 		SELECT
 			"channel".id,
 			"channel".type,
 			"channel".created_at,
-			"direct_partner".username AS "title",
+			"direct_partner".username AS "title"
 		FROM minichat.channels AS "channel"
 		
+		-- member me
+			LEFT JOIN minichat.channels_members AS "me_member"
+			ON "channel".id = "me_member".channel_id
+
 		-- direct_partner
 		LEFT JOIN minichat.channels_members AS "direct_partner_member"
 		ON "channel".id = "direct_partner_member".channel_id
@@ -230,18 +231,82 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 		LEFT JOIN minichat.messages AS "unread_messages"
 		ON "unread_messages".channel_id = "channel".id AND "unread_messages"."timestamp" > "me_member".last_read_message_timestamp
 
-		WHERE "me_member".user_id = $1 AND "direct_partner".id = $2
-		GROUP BY "channel".id, "public".title, "group".title, "direct_partner".username, "public".description
+		WHERE "me_member".user_id = $1 AND "direct_partner".id = $2 AND "channel".type = 'direct'
+		GROUP BY "channel".id, "direct_partner".id
 		`,
 		meUserId,
 		userId,
-	).Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title)
+	)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	channel.CreatedAt = coreutil.FormatTimestampz(createdAt)
+	var channel minichat.Channel
+	var createdAt pgtype.Timestamptz
+	if !rows.Next() && rows.Err() == nil {
+		err := conn.QueryRow(
+			ctx,
+			`
+			INSERT INTO minichat.channels (type)
+			VALUES ('direct')
+			RETURNING id, type, created_at
+			`,
+		).Scan(&channel.Id, &channel.Type, &createdAt)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		_, err = conn.Exec(
+			ctx,
+			`
+			INSERT INTO minichat.channels_members (channel_id, user_id)
+			VALUES ($1, $2), ($1, $3)
+			`,
+			channel.Id,
+			meUserId,
+			userId,
+		)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		_, err = conn.Query(
+			ctx,
+			`
+			INSERT INTO minichat.channels_direct (id)
+			VALUES ($1)
+			`,
+			channel.Id,
+		)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		err = conn.QueryRow(
+			ctx,
+			`
+			SELECT username
+			FROM minichat.users
+			WHERE id = $1
+			`,
+			userId,
+		).Scan(&channel.Title)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		channel.CreatedAt = coreutil.FormatTimestampz(createdAt)
+		var unreadCount int = 0
+		channel.UnreadCount = &unreadCount
+	} else {
+		rows.Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title)
+		channel.CreatedAt = coreutil.FormatTimestampz(createdAt)
+	}
 
 	httputil.JSONResponse(writer, channel)
 }

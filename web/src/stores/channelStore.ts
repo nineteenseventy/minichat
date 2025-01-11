@@ -27,6 +27,15 @@ export const useChannelStore = defineStore('channel', () => {
     channels.value = newChannels;
   }
 
+  function storeChannel(channel: Channel) {
+    const index = channels.value.findIndex((v) => v.id === channel.id);
+    if (index === -1) {
+      channels.value.push(channel);
+    } else {
+      channels.value[index] = channel;
+    }
+  }
+
   async function fetchChannels() {
     const { data } = await useApi('/channels').json<Result<Channel[]>>();
     return data.value?.data ?? undefined;
@@ -37,5 +46,5 @@ export const useChannelStore = defineStore('channel', () => {
     return data.value ?? undefined;
   }
 
-  return { channels, getChannel, updateStore };
+  return { channels, getChannel, updateStore, storeChannel };
 });

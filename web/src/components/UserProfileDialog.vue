@@ -8,6 +8,8 @@ import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatusComponent.vue';
 import SpinnerComponent from './SpinnerComponent.vue';
+import type { Channel } from '@/interfaces/channel.interface';
+import { useChannelStore } from '@/stores/channelStore';
 
 interface DialogRef {
   value: DynamicDialogInstance;
@@ -15,9 +17,10 @@ interface DialogRef {
 const dialogRef = inject<DialogRef>('dialogRef');
 const router = useRouter();
 
+const channelStore = useChannelStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
-const user = dialogRef?.value.data.user ?? authenticatedUserId;
+const user = (dialogRef?.value.data.user as string) ?? authenticatedUserId;
 const { data, error, isFetching } = useApi(`/users/${user}/profile`, {
   afterFetch(ctx) {
     if (dialogRef) {
@@ -37,6 +40,15 @@ const editMyProfile = () => {
 const bio = computed(() => {
   return data?.value?.bio?.split('\n') ?? [];
 });
+
+const messageUser = async () => {
+  const request = useApi(`/users/${user}/channel`);
+  const { data: channel } = await request.json<Channel>();
+  if (!channel.value) throw new Error('Channel could not be created!');
+  channelStore.storeChannel(channel.value);
+  router.push(`/channels/${channel.value?.id}`);
+  close();
+};
 </script>
 
 <template>
@@ -65,6 +77,7 @@ const bio = computed(() => {
     <div class="flex gap-4 mt-4">
       <Button @click="close()">Close</Button>
       <Button v-if="isMe" @click="editMyProfile()">Edit</Button>
+      <Button v-if="!isMe" @click="messageUser()">Message</Button>
     </div>
   </div>
 </template>
