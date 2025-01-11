@@ -42,8 +42,14 @@ const bio = computed(() => {
 
 const messageUser = async () => {
   const channel = await channelStore.getDirectChannel(user);
-  router.push(`/channels/${channel.id}`);
-  close();
+  if (channel.id) {
+    router.push(`/channels/${channel.id}`);
+    close();
+  } else {
+    console.warn(
+      'something went wrong while trying to find/create channel for this user',
+    );
+  }
 };
 </script>
 

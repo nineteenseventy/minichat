@@ -9,19 +9,15 @@ const channelId = useRouteParam('channelId');
 </script>
 
 <template>
-  <Card class="h-full">
+  <Card v-if="channelId" class="h-full">
     <template #title>
-      <ChannelTitleComponent v-if="channelId" :channelId="channelId" />
+      <ChannelTitleComponent :channelId="channelId" />
     </template>
     <template #content>
-      <MessagesComponent
-        v-if="channelId"
-        :channelId="channelId"
-        class="h-full max-h-full"
-      />
+      <MessagesComponent :channelId="channelId" class="h-full max-h-full" />
     </template>
     <template #footer>
-      <ChatInputComponent v-if="channelId" :channelId="channelId" />
+      <ChatInputComponent :channelId="channelId" />
     </template>
   </Card>
 </template>

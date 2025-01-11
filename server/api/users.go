@@ -214,7 +214,7 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 			"channel".id,
 			"channel".type,
 			"channel".created_at,
-			"direct_partner".username AS "title"
+			"direct_partner".username AS "title",
 			COUNT("unread_messages".*) as "unread_count"
 		FROM minichat.channels AS "channel"
 		
