@@ -2,10 +2,15 @@
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
 
+defineProps<{
+  enableCancel?: boolean;
+}>();
+
 const model = defineModel();
 
 const emit = defineEmits<{
   onSave: [];
+  onCancel: [];
 }>();
 
 async function onKeydown(event: KeyboardEvent) {
@@ -26,7 +31,18 @@ async function onKeydown(event: KeyboardEvent) {
       v-model="model"
       @keydown="onKeydown($event)"
     />
-    <Button icon="pi pi-send" class="self-end" @click="emit('onSave')" />
+    <Button
+      v-if="enableCancel"
+      icon="pi pi-times"
+      class="self-end min-h-11 min-w-11"
+      severity="danger"
+      @click="emit('onCancel')"
+    />
+    <Button
+      icon="pi pi-send"
+      class="self-end min-h-11 min-w-11"
+      @click="emit('onSave')"
+    />
   </div>
 </template>
 

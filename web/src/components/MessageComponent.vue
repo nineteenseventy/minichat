@@ -65,7 +65,7 @@ const messageRows = computed(() => content.value.split('\n'));
         :userId="message.authorId"
         class="w-full h-7"
       />
-      <div class="flex gap-2 controls invisible">
+      <div class="flex gap-2 controls invisible" v-if="mode === 'view'">
         <span
           v-if="isMyMessage"
           class="cursor-pointer hover:underline pi pi-pencil"
@@ -92,7 +92,9 @@ const messageRows = computed(() => content.value.split('\n'));
     <ChatInputComponent
       v-if="mode === 'edit'"
       v-model="content"
+      :enable-cancel="true"
       @onSave="onAfterEdit()"
+      @onCancel="mode = 'view'"
     />
     <span class="text-xs/3">
       {{ timestamp }}

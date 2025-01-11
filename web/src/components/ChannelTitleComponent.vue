@@ -11,7 +11,7 @@ const channel = channelStore.getChannel(computed(() => props.channelId));
 </script>
 
 <template>
-  <div class="flex flex-row items-center text-base font-bold color-surface-400">
+  <div class="flex flex-row items-center text-base font-bold text-muted-color">
     <span>{{ channel?.title }}</span>
   </div>
 </template>
