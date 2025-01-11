@@ -57,6 +57,7 @@ func getChannelsHandler(writer http.ResponseWriter, request *http.Request) {
 			-- public channel
 			LEFT JOIN minichat.channels_public AS "public"
 			ON "public".id = "channel".id
+			
 			WHERE "me_member".user_id = $1
 			GROUP BY "channel".id, "public".title, "group".title, "direct_partner".username, "public".description
 		`,
