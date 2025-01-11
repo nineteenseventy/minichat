@@ -32,13 +32,13 @@ async function onSend() {
   const contentValue = content.value.trim();
   if (contentValue.length < 1) return;
 
+  content.value = '';
+  draftsStore.clearMessageDraft(props.channelId);
+
   const newMessage: NewMessage = {
     content: contentValue,
   };
-
   await messageStore.sendMessage(props.channelId, newMessage);
-  content.value = '';
-  draftsStore.clearMessageDraft(props.channelId);
 }
 </script>
 

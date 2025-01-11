@@ -96,7 +96,7 @@ const messageRows = computed(() => content.value.split('\n'));
       @onSave="onAfterEdit()"
       @onCancel="mode = 'view'"
     />
-    <span class="text-xs/3">
+    <span class="text-xs/3" :v-tooltip="'a'">
       {{ timestamp }}
     </span>
   </div>

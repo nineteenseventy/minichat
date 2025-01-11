@@ -42,7 +42,12 @@ export const useMessageStore = defineStore('message', () => {
   const messages = ref<Message[]>(testMessages);
 
   function storeMessage(message: Message) {
-    messages.value.push(message);
+    const existingMessageIndex = messages.value.findIndex(
+      (v) => v.id === message.id,
+    );
+    if (existingMessageIndex !== -1)
+      messages.value[existingMessageIndex] = message;
+    else messages.value.push(message);
   }
 
   function getMessage(messageId: Ref<string>) {
@@ -63,8 +68,7 @@ export const useMessageStore = defineStore('message', () => {
     const request = useApi(`/messages/${channelId}?${params(queryData)}`);
     const { data } = await request.json<Result<Message[]>>();
     if (!data.value) return;
-    const newMessages = data.value.data ?? [];
-    messages.value = newMessages.concat(messages.value);
+    data.value.data.forEach(storeMessage);
     sortMessages();
   }
 
