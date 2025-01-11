@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia';
-import type { GetMessagesQuery, Message } from '@/interfaces/message.interface';
+import type {
+  GetMessagesQuery,
+  Message,
+  NewMessage,
+} from '@/interfaces/message.interface';
 import { computed, ref, type Ref } from 'vue';
 import { useApi } from '@/composables/useApi';
 import type { Result } from '@/interfaces/util.interface';
@@ -95,6 +99,16 @@ export const useMessageStore = defineStore('message', () => {
     messages.value = messages.value.filter((v) => filters.every((f) => f(v)));
   }
 
+  async function sendMessage(channelId: string, newMessage: NewMessage) {
+    const request = useApi(`/messages/${channelId}`, {
+      method: 'POST',
+      body: JSON.stringify(newMessage),
+    });
+    const { data } = await request.json<Message>();
+    if (!data.value) return;
+    storeMessage(data.value);
+  }
+
   return {
     messages,
     storeMessage,
@@ -103,5 +117,6 @@ export const useMessageStore = defineStore('message', () => {
     clearMessages,
     loadMessages,
     getMessageIds,
+    sendMessage,
   };
 });

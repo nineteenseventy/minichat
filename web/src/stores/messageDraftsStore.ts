@@ -12,11 +12,20 @@ export const useMessageDraftsStore = defineStore('messageDrafts', () => {
     return messageDrafts.value.find((v) => v.channelId === channelId)?.content;
   }
   function setMessageDraft(channelId: string, content?: string) {
-    if (!content) return;
-    messageDrafts.value.push({
-      channelId: channelId,
-      content: content,
-    });
+    if (content) {
+      messageDrafts.value.push({
+        channelId: channelId,
+        content: content,
+      });
+    } else {
+      messageDrafts.value = messageDrafts.value.filter(
+        (v) => v.channelId !== channelId,
+      );
+    }
   }
-  return { messageDrafts, getMessageDraft, setMessageDraft };
+
+  function clearMessageDraft(channelId: string) {
+    setMessageDraft(channelId, undefined);
+  }
+  return { messageDrafts, getMessageDraft, setMessageDraft, clearMessageDraft };
 });

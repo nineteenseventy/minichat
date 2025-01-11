@@ -18,6 +18,10 @@ export interface Message {
   attachments: MessageAttachment[];
 }
 
+export interface NewMessage {
+  content: string;
+}
+
 export interface NewMessageAttachment {
   type: string;
   filename: string;

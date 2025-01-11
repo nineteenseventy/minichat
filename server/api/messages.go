@@ -12,7 +12,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nineteenseventy/minichat/core/database"
-	"github.com/nineteenseventy/minichat/core/http/util"
 	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/minichat"
 	coreutil "github.com/nineteenseventy/minichat/core/util"
@@ -222,7 +221,7 @@ func getMessagesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.JSONResponse(w, util.NewResult(messages))
+	httputil.JSONResponse(w, httputil.NewResult(messages))
 }
 
 func postMessageHandler(w http.ResponseWriter, r *http.Request) {
@@ -245,6 +244,7 @@ func postMessageHandler(w http.ResponseWriter, r *http.Request) {
 	conn := database.GetDatabase()
 
 	var message minichat.Message
+	var timestamp pgtype.Timestamptz
 	err = conn.QueryRow(
 		ctx,
 		`
@@ -255,7 +255,8 @@ func postMessageHandler(w http.ResponseWriter, r *http.Request) {
 		channelId,
 		userId,
 		basemessage.Content,
-	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &message.Timestamp, &message.Read)
+	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &timestamp, &message.Read)
+	message.Timestamp = coreutil.FormatTimestampz(timestamp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -276,7 +277,7 @@ func postMessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.JSONResponse(w, message)
+	httputil.JSONResponse(w, message)
 }
 
 func patchMessageHandler(w http.ResponseWriter, r *http.Request) {
@@ -329,7 +330,7 @@ func patchMessageHandler(w http.ResponseWriter, r *http.Request) {
 
 	message.Content = basemessage.Content
 
-	util.JSONResponse(w, message)
+	httputil.JSONResponse(w, message)
 }
 
 func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
@@ -367,7 +368,7 @@ func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.JSONResponse(w, message)
+	httputil.JSONResponse(w, message)
 }
 
 func MessagesRouter(router chi.Router) {
