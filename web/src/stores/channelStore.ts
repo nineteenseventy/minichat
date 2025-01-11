@@ -46,5 +46,13 @@ export const useChannelStore = defineStore('channel', () => {
     return data.value ?? undefined;
   }
 
-  return { channels, getChannel, updateStore, storeChannel };
+  async function getDirectChannel(userId: string) {
+    const request = useApi(`/users/${userId}/channel`);
+    const { data: channel } = await request.json<Channel>();
+    if (!channel.value) throw new Error('Channel could not be created!');
+    storeChannel(channel.value);
+    return channel.value;
+  }
+
+  return { channels, getChannel, updateStore, storeChannel, getDirectChannel };
 });

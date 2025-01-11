@@ -8,7 +8,6 @@ import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import UserPictureOnlineStatusComponent from './UserPictureOnlineStatusComponent.vue';
 import SpinnerComponent from './SpinnerComponent.vue';
-import type { Channel } from '@/interfaces/channel.interface';
 import { useChannelStore } from '@/stores/channelStore';
 
 interface DialogRef {
@@ -42,11 +41,8 @@ const bio = computed(() => {
 });
 
 const messageUser = async () => {
-  const request = useApi(`/users/${user}/channel`);
-  const { data: channel } = await request.json<Channel>();
-  if (!channel.value) throw new Error('Channel could not be created!');
-  channelStore.storeChannel(channel.value);
-  router.push(`/channels/${channel.value?.id}`);
+  const channel = await channelStore.getDirectChannel(user);
+  router.push(`/channels/${channel.id}`);
   close();
 };
 </script>
