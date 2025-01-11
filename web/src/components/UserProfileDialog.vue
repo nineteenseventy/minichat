@@ -47,7 +47,7 @@ const bio = computed(() => {
     >
       <SpinnerComponent />
     </div>
-    <UserPictureOnlineStatusComponent :userId="user" />
+    <UserPictureOnlineStatusComponent :userId="user" class="h-10 w-10" />
     <span class="font-bold text-2xl mix-blend-difference">{{
       data?.username
     }}</span>

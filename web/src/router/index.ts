@@ -2,7 +2,7 @@ import { createAuthGuard } from '@auth0/auth0-vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import auth0 from '../auth0';
 import { initializeAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
-import MainView from '@/pages/MainView.vue';
+import MainView from '@/views/MainView.vue';
 import ChatView from '@/views/ChannelView.vue';
 
 const router = createRouter({

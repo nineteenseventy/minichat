@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Panel from 'primevue/panel';
 import UserComponent from './UserComponent.vue';
 import { useRelativeFormattedDate } from '@/composables/useFormattedDate';
 import { computed } from 'vue';
@@ -31,15 +30,22 @@ function editMessage() {
   throw new Error('Not implemented');
 }
 function deleteMessage() {
-  throw new Error('Not implemented');
+  if (!message.value?.id) return;
+  messageStore.deleteMessage(message.value.id);
 }
+
+const messageContent = computed(() => message.value?.content.split('\n'));
 </script>
 
 <template>
-  <Panel>
-    <template #header>
-      <UserComponent v-if="message" :userId="message.authorId" class="w-full" />
-      <div class="flex justify-end gap-2">
+  <div class="px-4 py-2 hover:bg-white hover:bg-opacity-5 rounded-content">
+    <div class="flex flex-row pb-1">
+      <UserComponent
+        v-if="message"
+        :userId="message.authorId"
+        class="w-full h-7"
+      />
+      <div class="flex gap-2">
         <span
           v-if="isMyMessage"
           class="cursor-pointer hover:underline"
@@ -55,14 +61,18 @@ function deleteMessage() {
           Delete
         </span>
       </div>
-    </template>
-    <span class="content">
-      {{ message?.content }}
-    </span>
-    <template #footer>
-      <span class="text-xs">
-        {{ timestamp }}
+    </div>
+    <span class="flex flex-col gap-1">
+      <span
+        v-for="(message, index) in messageContent"
+        :key="index"
+        class="break-words min-h-4"
+      >
+        {{ message }}
       </span>
-    </template>
-  </Panel>
+    </span>
+    <span class="text-xs/3">
+      {{ timestamp }}
+    </span>
+  </div>
 </template>

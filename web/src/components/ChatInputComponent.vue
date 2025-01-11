@@ -30,6 +30,13 @@ async function onSend() {
   content.value = '';
   draftsStore.clearMessageDraft(props.channelId);
 }
+
+async function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    await onSend();
+  }
+}
 </script>
 
 <template>
@@ -40,6 +47,7 @@ async function onSend() {
       rows="1"
       class="min-h-11 max-h-36"
       v-model="content"
+      @keydown="onKeydown($event)"
     />
     <Button icon="pi pi-send" class="self-end" @click="onSend()" />
   </div>

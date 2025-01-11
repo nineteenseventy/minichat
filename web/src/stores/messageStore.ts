@@ -33,6 +33,7 @@ const testMessages: Message[] = [
 
 interface ClearMessagesOptions {
   channelId?: string;
+  messageId?: string;
   before?: Date;
   after?: Date;
 }
@@ -70,7 +71,7 @@ export const useMessageStore = defineStore('message', () => {
   function sortMessages() {
     messages.value.sort(
       (a, b) =>
-        parseDate(a.timestamp).getTime() - parseDate(b.timestamp).getTime(),
+        parseDate(b.timestamp).getTime() - parseDate(a.timestamp).getTime(),
     );
   }
 
@@ -91,22 +92,34 @@ export const useMessageStore = defineStore('message', () => {
   function clearMessages(options: ClearMessagesOptions) {
     const filters: ((v: Message) => boolean)[] = [];
 
-    const { channelId, before, after } = options;
+    const { channelId, before, after, messageId } = options;
     if (channelId) filters.push((v) => v.channelId === channelId);
     if (before) filters.push((v) => new Date(v.timestamp) < before);
     if (after) filters.push((v) => new Date(v.timestamp) > after);
+    if (messageId) filters.push((v) => v.id === messageId);
 
-    messages.value = messages.value.filter((v) => filters.every((f) => f(v)));
+    messages.value = messages.value.filter((v) => filters.every((f) => !f(v)));
   }
 
   async function sendMessage(channelId: string, newMessage: NewMessage) {
-    const request = useApi(`/messages/${channelId}`, {
-      method: 'POST',
-      body: JSON.stringify(newMessage),
-    });
+    const request = useApi(`/messages/${channelId}`).post(newMessage);
     const { data } = await request.json<Message>();
     if (!data.value) return;
     storeMessage(data.value);
+  }
+
+  async function updateMessage(messageId: string, newMessage: NewMessage) {
+    const request = useApi(`/messages/${messageId}`).patch(newMessage);
+    const { data } = await request.json<Message>();
+    if (!data.value) return;
+    storeMessage(data.value);
+  }
+
+  async function deleteMessage(messageId: string) {
+    const request = useApi(`/messages/${messageId}`).delete();
+    const { data } = await request.json<Message>();
+    if (!data.value) return;
+    clearMessages({ messageId });
   }
 
   return {
@@ -118,5 +131,7 @@ export const useMessageStore = defineStore('message', () => {
     loadMessages,
     getMessageIds,
     sendMessage,
+    updateMessage,
+    deleteMessage,
   };
 });

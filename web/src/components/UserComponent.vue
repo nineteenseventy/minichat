@@ -21,8 +21,8 @@ const user = userStore.getUser(_userId);
     class="flex flex-row items-center cursor-pointer hover:underline"
     @click="openProfile(_userId)"
   >
-    <UserPictureOnlineStatusComponent :userId="_userId" />
-    <span class="font-bold ml-4 hover:underline">
+    <UserPictureOnlineStatusComponent :userId="_userId" class="h-full" />
+    <span class="font-bold ml-2 hover:underline">
       {{ user?.username }}
     </span>
   </div>

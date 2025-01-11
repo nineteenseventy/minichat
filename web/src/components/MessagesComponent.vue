@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineProps, watch } from 'vue';
+import { computed, watch } from 'vue';
 import MessageComponent from '@/components/MessageComponent.vue';
 import { useMessageStore } from '@/stores/messageStore';
 
@@ -23,12 +23,21 @@ watch(
 
 function onScroll(event: Event) {
   const target = event.target as HTMLElement;
-  console.log('scrolling', target.scrollTop, target.scrollHeight);
+  console.log(
+    'scrolling',
+    target.scrollTop,
+    target.scrollHeight,
+    target.clientHeight,
+    target.scrollHeight - target.scrollTop - target.clientHeight,
+  );
 }
 </script>
 
 <template>
-  <div v-on:scroll="onScroll" class="flex flex-col-reverse">
+  <div
+    v-on:scroll="onScroll"
+    class="flex flex-col-reverse overflow-scroll gap-4"
+  >
     <MessageComponent
       v-for="messageId in messageIds"
       :key="messageId"

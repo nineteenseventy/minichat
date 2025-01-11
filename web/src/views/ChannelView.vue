@@ -14,7 +14,11 @@ const channelId = useRouteParam('channelId');
       <ChannelTitleComponent v-if="channelId" :channelId="channelId" />
     </template>
     <template #content>
-      <MessagesComponent v-if="channelId" :channelId="channelId" />
+      <MessagesComponent
+        v-if="channelId"
+        :channelId="channelId"
+        class="h-full max-h-full"
+      />
     </template>
     <template #footer>
       <ChatInputComponent v-if="channelId" :channelId="channelId" />

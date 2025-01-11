@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Card from 'primevue/card';
-import { onBeforeMount } from 'vue';
+import { onBeforeMount, onBeforeUnmount } from 'vue';
 import UserComponent from '@/components/UserComponent.vue';
 import { useUserStore } from '@/stores/userStore';
 import { useTimeoutPoll } from '@vueuse/core';
@@ -9,18 +9,18 @@ import ChannelsComponent from '@/components/ChannelsComponent.vue';
 import { useOnlineStatusStore } from '@/stores/onlineStatusStore';
 import { useChannelStore } from '@/stores/channelStore';
 
+const pollIntervals = [
+  useTimeoutPoll(async () => await userStore.updateStore(), 60000),
+  useTimeoutPoll(async () => await onlineStatusStore.updateStore(), 10000),
+  useTimeoutPoll(async () => await channelStore.updateStore(), 60000),
+];
+
 onBeforeMount(() => {
-  useTimeoutPoll(async () => await userStore.updateStore(), 60000, {
-    immediate: true,
-  });
+  pollIntervals.forEach((pollInterval) => pollInterval.resume());
+});
 
-  useTimeoutPoll(async () => await onlineStatusStore.updateStore(), 10000, {
-    immediate: true,
-  });
-
-  useTimeoutPoll(async () => await channelStore.updateStore(), 60000, {
-    immediate: true,
-  });
+onBeforeUnmount(() => {
+  pollIntervals.forEach((pollInterval) => pollInterval.pause());
 });
 
 const userStore = useUserStore();
@@ -33,7 +33,7 @@ const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
   <div class="flex flex-row gap-2 p-2 h-full">
     <nav class="w-72 flex flex-col gap-2">
       <ChannelsComponent class="h-full" />
-      <Card>
+      <Card class="user-card">
         <template #content>
           <UserComponent :userId="authenticatedUserId" />
         </template>
@@ -44,3 +44,9 @@ const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
     </main>
   </div>
 </template>
+
+<style scoped>
+.user-card :deep(.p-card-content) {
+  overflow: visible;
+}
+</style>

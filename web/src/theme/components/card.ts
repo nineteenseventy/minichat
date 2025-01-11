@@ -7,13 +7,15 @@ export const card = {
   },
   css: ({ dt }) => `
     .p-card {
-    border: 1px solid ${dt('content.border.color')};
-  }
+      border: 1px solid ${dt('content.border.color')};
+      overflow: hidden;
+    }
     .p-card-body {
       max-width: 100%;
       max-height: 100%;
       height: 100%;
       width: 100%;
+      overflow: hidden;
     }
     .p-card-content {
       flex: 1;
