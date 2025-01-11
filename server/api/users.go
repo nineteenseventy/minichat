@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nineteenseventy/minichat/core/cache"
 	"github.com/nineteenseventy/minichat/core/database"
 	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/minichat"
-	"github.com/nineteenseventy/minichat/core/util"
+	coreutil "github.com/nineteenseventy/minichat/core/util"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
 
@@ -143,7 +144,7 @@ func getUserStatusHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if lastEchoTime > util.GetUnixTime()-60 {
+	if lastEchoTime > coreutil.GetUnixTime()-60 {
 		httputil.JSONResponse(writer, minichat.UserStatus{Status: "online", ID: id})
 	} else {
 		httputil.JSONResponse(writer, minichat.UserStatus{Status: "offline", ID: id})
@@ -153,14 +154,14 @@ func getUserStatusHandler(writer http.ResponseWriter, request *http.Request) {
 func echoHandler(writer http.ResponseWriter, request *http.Request) {
 	redis := cache.GetRedis()
 	userId := serverutil.GetUserIdFromContext(request.Context())
-	redis.Set(request.Context(), fmt.Sprintf("minichat:onlineStatus:%s", userId), util.GetUnixTime(), 0)
+	redis.Set(request.Context(), fmt.Sprintf("minichat:onlineStatus:%s", userId), coreutil.GetUnixTime(), 0)
 	writer.WriteHeader(http.StatusNoContent)
 }
 
 func echoAndGetStatusesHandler(writer http.ResponseWriter, request *http.Request) {
 	redis := cache.GetRedis()
 	userId := serverutil.GetUserIdFromContext(request.Context())
-	redis.Set(request.Context(), fmt.Sprintf("minichat:onlineStatus:%s", userId), util.GetUnixTime(), 0)
+	redis.Set(request.Context(), fmt.Sprintf("minichat:onlineStatus:%s", userId), coreutil.GetUnixTime(), 0)
 
 	queryIds := request.URL.Query().Get("ids")
 	if queryIds == "" {
@@ -182,7 +183,7 @@ func echoAndGetStatusesHandler(writer http.ResponseWriter, request *http.Request
 			continue
 		}
 
-		if lastEchoTime > util.GetUnixTime()-60 {
+		if lastEchoTime > coreutil.GetUnixTime()-60 {
 			statuses = append(statuses, minichat.UserStatus{ID: id, Status: "online"})
 		} else {
 			statuses = append(statuses, minichat.UserStatus{ID: id, Status: "offline"})
@@ -192,11 +193,65 @@ func echoAndGetStatusesHandler(writer http.ResponseWriter, request *http.Request
 	httputil.JSONResponse(writer, statuses)
 }
 
+func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	meUserId := serverutil.GetUserIdFromContext(ctx)
+	userId := chi.URLParam(request, "id")
+	if userId == "me" {
+		userId = meUserId
+	}
+
+	if meUserId == userId {
+		http.Error(writer, "Cannot get channel for self", http.StatusBadRequest)
+		return
+	}
+
+	conn := database.GetDatabase()
+
+	var channel minichat.Channel
+	var createdAt pgtype.Timestamptz
+	err := conn.QueryRow(
+		ctx,
+		`
+		SELECT
+			"channel".id,
+			"channel".type,
+			"channel".created_at,
+			"direct_partner".username AS "title",
+		FROM minichat.channels AS "channel"
+		
+		-- direct_partner
+		LEFT JOIN minichat.channels_members AS "direct_partner_member"
+		ON "channel".id = "direct_partner_member".channel_id
+		LEFT JOIN minichat.users AS "direct_partner"
+		ON "direct_partner_member".user_id = "direct_partner".id
+
+		-- unread messages
+		LEFT JOIN minichat.messages AS "unread_messages"
+		ON "unread_messages".channel_id = "channel".id AND "unread_messages"."timestamp" > "me_member".last_read_message_timestamp
+
+		WHERE "me_member".user_id = $1 AND "direct_partner".id = $2
+		GROUP BY "channel".id, "public".title, "group".title, "direct_partner".username, "public".description
+		`,
+		meUserId,
+		userId,
+	).Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	channel.CreatedAt = coreutil.FormatTimestampz(createdAt)
+
+	httputil.JSONResponse(writer, channel)
+}
+
 func UsersRouter(router chi.Router) {
 	router.Get("/users", getUsersHandler)
 	router.Get("/users/{id}", getUserHandler)
 	router.Get("/users/{id}/profile", getUserProfileHandler)
 	router.Get("/users/{id}/status", getUserStatusHandler)
+	router.Get("/users/{id}/channel", getUserChannelHandler)
 	router.Post("/users/echo", echoHandler)
 	router.Post("/users/echoAndGetStatuses", echoAndGetStatusesHandler)
 
