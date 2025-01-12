@@ -7,14 +7,16 @@ import { parseDate } from '@/utils/date/parseDate';
 import { useMessageStore } from '@/stores/messageStore';
 import ChatInputComponent from './ChatInputComponent.vue';
 import type { NewMessage } from '@/interfaces/message.interface';
-
-const messageStore = useMessageStore();
+import { markdownRenderer } from '@/utils/markdown/markdownRenderer';
+import { useConfirm } from 'primevue/useconfirm';
 
 const props = defineProps<{
   messageId: string;
 }>();
 
-const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
+const md = markdownRenderer();
+
+const messageStore = useMessageStore();
 const message = messageStore.getMessage(computed(() => props.messageId));
 
 const timestamp = computed(() => {
@@ -22,6 +24,8 @@ const timestamp = computed(() => {
   const date = parseDate(message.value.timestamp);
   return useRelativeFormattedDate(date);
 });
+
+const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
 const isMyMessage = computed(() => {
   return message.value?.authorId === authenticatedUserId;
@@ -33,6 +37,27 @@ function deleteMessage() {
   if (!message.value?.id) return;
   messageStore.deleteMessage(message.value.id);
 }
+
+const confirm = useConfirm();
+const confirmDeleteMessage = (event: Event) => {
+  console.log(event);
+  // (event.target as HTMLSpanElement).focus();
+  confirm.require({
+    target: event.currentTarget as HTMLSpanElement,
+    message: 'Are your sure you want to delete this message?',
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: 'Cancel',
+      severity: 'secondary',
+      outlined: true,
+    },
+    acceptProps: {
+      label: 'Delete',
+      severity: 'danger',
+    },
+    accept: deleteMessage,
+  });
+};
 
 const content = ref('');
 watch(
@@ -53,8 +78,6 @@ async function onAfterEdit() {
 
   mode.value = 'view';
 }
-
-const messageRows = computed(() => content.value.split('\n'));
 </script>
 
 <template>
@@ -75,19 +98,13 @@ const messageRows = computed(() => content.value.split('\n'));
         <span
           v-if="isMyMessage"
           class="cursor-pointer hover:underline pi pi-trash"
-          @click="deleteMessage()"
+          @click="confirmDeleteMessage"
         >
         </span>
       </div>
     </div>
     <span class="flex flex-col gap-1" v-if="mode === 'view'">
-      <span
-        v-for="(message, index) in messageRows"
-        :key="index"
-        class="break-words min-h-4"
-      >
-        {{ message }}
-      </span>
+      <span v-html="md.render(message?.content as string)" />
     </span>
     <ChatInputComponent
       v-if="mode === 'edit'"

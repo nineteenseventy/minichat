@@ -17,12 +17,12 @@ const user = userStore.getUser(_userId);
 </script>
 
 <template>
-  <div
-    class="flex flex-row items-center cursor-pointer hover:underline"
-    @click="openProfile(_userId)"
-  >
+  <div class="flex flex-row items-center">
     <UserPictureOnlineStatusComponent :userId="_userId" class="h-full" />
-    <span class="font-bold ml-2 hover:underline">
+    <span
+      @click="openProfile(_userId)"
+      class="font-bold ml-2 cursor-pointer hover:underline"
+    >
       {{ user?.username }}
     </span>
   </div>

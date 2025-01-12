@@ -8,6 +8,7 @@ import PrimeVue from 'primevue/config';
 import Theme from './theme/theme';
 import '../index.css';
 import DialogService from 'primevue/dialogservice';
+import ConfirmationService from 'primevue/confirmationservice';
 
 import App from './App.vue';
 import router from './router';
@@ -33,6 +34,7 @@ app.use(PrimeVue, {
   },
 });
 app.use(DialogService);
+app.use(ConfirmationService);
 app.directive('ripple', Ripple);
 
 app.mount('app-root');
