@@ -3,6 +3,7 @@ version: '3'
 services:
   web:
     image: ghcr.io/nineteenseventy/minichat/web:latest
+    restart: always
     networks:
       - minichat
     ports:
@@ -10,17 +11,73 @@ services:
 
   server:
     image: ghcr.io/nineteenseventy/minichat/server:latest
+    restart: always
+    environment:
+      - MINICHAT_POSTGRES_HOST=postgres
+      - MINICHAT_POSTGRES_DATABASE=minichat
+      - MINICHAT_POSTGRES_USER=postgres
+      - MINICHAT_POSTGRES_PASSWORD=postgres
+      - MINICHAT_AUTH0_DOMAIN=minichat.eu.auth0.com
+      - MINICHAT_AUTH0_AUDIENCE=https://minichat.eu.auth0.com/api/v2/
+      - MINICHAT_AUTH0_CLIENT_ID=QikDGdLbvyneGAHkHmWP3DjrG3nGe0s7
+      - MINICHAT_AUTH0_CLIENT_SECRET=Yg2lLQ6XAnX_M8MoaZ9L7Kx9xSucZDLvoVaCzTG4JQ1no6KXk1wk4M5WxU2W58iT
+      - MINICHAT_REDIS_HOST=redis
+      - MINICHAT_REDIS_PORT=6379
+      - MINICHAT_MINIO_ENDPOINT=localhost
+      - MINICHAT_MINIO_ACCESS_KEY=admin
+      - MINICHAT_MINIO_SECRET_KEY=@Password123!
     networks:
       - minichat
     ports:
+      - '8081:8081'
 
-  db:
-    image: postgres
+  minioserve:
+    image: minio/mc:latest
+    restart: always
+    networks:
+      - minichat
+    entrypoint: mc
+    command: server http://storage:9000
+    environment:
+      - MINICHAT_MINIO_ACCESS_KEY=admin
+      - MINICHAT_MINIO_SECRET_KEY=@Password123!
+
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    networks:
+      - 'dskills'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dbc2024!
+    ports:
+      - '127.0.0.1:5432:5432/tcp'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready', '-d', 'postgres', '-U', 'postgres']
+      interval: 10s
+      timeout: 60s
+      retries: 5
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
+
+  storage:
+    image: minio/minio:latest
+    restart: always
+    command: minio server /var/lib/minio/data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=@Password123!
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - storage:/var/lib/minio/data
+    networks:
+      - minichat
 
 volumes:
-  db-data:
+  db:
+  storage:
 
 networks:
   minichat:
