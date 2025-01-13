@@ -3,25 +3,26 @@ import hljs from '@highlightjs/cdn-assets/es/highlight.js';
 import '@highlightjs/cdn-assets/styles/github-dark.css';
 
 const md = markdownit({
-  html: true,
+  html: false,
   breaks: true,
   highlight: function (str, lang): string {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return (
-          '<pre><code class="hljs">' +
-          hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
-          '</code></pre>'
-        );
-      } catch (_) {
-        console.log(_);
-      }
-    }
+    console.log('lang:', hljs.getLanguage(lang));
+    if (!(lang && hljs.getLanguage(lang)))
+      return `<pre><code class="hljs">${str}</code></pre>`;
 
-    return (
-      '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>'
-    );
+    const highlighted = hljs.highlight(lang, str, true);
+    return `<pre><code class="hljs">${highlighted.value}</code></pre>`;
   },
 });
 
-export const markdownRenderer = () => md;
+function sanitizeContent(content: string): string {
+  return content
+    .replace(/(?:[^\\]|^)((?:\\{2})*)&nbsp;/g, '$1\\&')
+    .replace(/\n(?=\n)/g, '\n&nbsp;');
+}
+
+export const markdownRender = () => (v: string) => {
+  const sanitized = sanitizeContent(v);
+  const rendered = md.render(sanitized);
+  return rendered;
+};
