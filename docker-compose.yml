@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  web:
+    image: ghcr.io/nineteenseventy/minichat/web:latest
+    networks:
+      - minichat
+    ports:
+      - '8080:8080'
+
+  server:
+    image: ghcr.io/nineteenseventy/minichat/server:latest
+    networks:
+      - minichat
+    ports:
+
+  db:
+    image: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
+
+networks:
+  minichat:
