@@ -6,6 +6,12 @@ services:
     restart: always
     networks:
       - minichat
+    environment:
+      - EXTERNAL_URL=http://localhost:8080
+      - API_URL=http://localhost:3001/api
+      - AUTH0_DOMAIN=minichat.eu.auth0.com
+      - AUTH0_CLIENT_ID=QikDGdLbvyneGAHkHmWP3DjrG3nGe0s7
+      - AUTH0_AUDIENCE=https://minichat.eu.auth0.com/api/v2/
     ports:
       - '8080:8080'
 
@@ -24,12 +30,15 @@ services:
       - MINICHAT_REDIS_HOST=redis
       - MINICHAT_REDIS_PORT=6379
       - MINICHAT_MINIO_ENDPOINT=localhost
+      - MINICHAT_MINIO_PORT=9000
       - MINICHAT_MINIO_ACCESS_KEY=admin
       - MINICHAT_MINIO_SECRET_KEY=@Password123!
+      - MINICHAT_MINIO_USE_SSL=false
+      - MINICHAT_CDN_URL=http://localhost:9000
     networks:
       - minichat
     ports:
-      - '8081:8081'
+      - '3000:3000'
 
   minioserve:
     image: ghcr.io/nineteenseventy/minichat/minioserve:latest
@@ -37,10 +46,15 @@ services:
     networks:
       - minichat
     entrypoint: mc
-    command: server http://storage:9000
+    ports:
+      - '3002:3000'
     environment:
+      - MINIOSERVE_ALLOWED_BUCKET_NAMES=minichat,profile
+      - MINICHAT_MINIO_ENDPOINT=localhost
+      - MINICHAT_MINIO_PORT=9000
       - MINICHAT_MINIO_ACCESS_KEY=admin
       - MINICHAT_MINIO_SECRET_KEY=@Password123!
+      - MINICHAT_MINIO_USE_SSL=false
 
   postgres:
     image: postgres:16-alpine
@@ -49,11 +63,20 @@ services:
       - minichat
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: dbc2024!
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: minichat
     ports:
       - '127.0.0.1:5432:5432/tcp'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready', '-d', 'postgres', '-U', 'postgres']
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready',
+          '-d',
+          '$POSTGRES_DB',
+          '-U',
+          '$POSTGRES_USER',
+        ]
       interval: 10s
       timeout: 60s
       retries: 5
@@ -74,6 +97,14 @@ services:
       - storage:/var/lib/minio/data
     networks:
       - minichat
+
+  redis:
+    image: redis:alpine
+    restart: always
+    networks:
+      - minichat
+    ports:
+      - '6379:6379'
 
 volumes:
   db:

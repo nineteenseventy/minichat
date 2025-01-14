@@ -12,6 +12,7 @@ FROM alpine:3.12
 
 COPY --from=build /minioserve /usr/local/bin/minioserve
 
+ENV MINICHAT_HOST=localhost
 ENV MINICHAT_PORT=3000
 EXPOSE $MINICHAT_PORT
 

@@ -12,6 +12,7 @@ FROM alpine:3.12
 
 COPY --from=build /minioserve /usr/local/bin/minioserve
 
+ENV MINIOSERVE_HOST=localhost
 ENV MINIOSERVE_PORT=3000
 EXPOSE $MINIOSERVE_PORT
 

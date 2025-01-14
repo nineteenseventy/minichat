@@ -15,6 +15,7 @@ export async function loadGlobalEnv(options?: AssetEnvPluginOptions) {
   const parsed = parse(txtEnv);
   populate(globalEnv, parsed); // first load from .env file so that Vite env doesn't overwrite
   populate(globalEnv, import.meta.env); // then load from Vite env
+  console.info('globalEnv loaded: ' + JSON.stringify(globalEnv));
 }
 
 // Vue Plugin Stuff
