@@ -6,7 +6,7 @@ defineProps<{
   enableCancel?: boolean;
 }>();
 
-const model = defineModel();
+const model = defineModel<string>();
 
 const emit = defineEmits<{
   onSave: [];
