@@ -49,7 +49,7 @@ export const formatRelativeDate = function (
 export const useRelativeFormattedDate = function (
   date: MaybeRefOrGetter<DateLike>,
 ) {
-  const now = useNow();
+  const now = useNow({ interval: 1000 });
   return computed(() =>
     formatRelativeDate(normalizeDate(toValue(date)), toValue(now)),
   );

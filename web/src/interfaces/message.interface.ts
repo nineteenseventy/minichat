@@ -1,3 +1,10 @@
+export interface GetMessagesQuery {
+  start?: string;
+  count?: number;
+  before?: string;
+  after?: string;
+}
+
 export interface Message {
   id: string;
   channelId: string;
@@ -6,9 +13,13 @@ export interface Message {
   /**
    * @kind iso8601
    */
-  timestamp?: string;
+  timestamp: string;
   read: boolean;
   attachments: MessageAttachment[];
+}
+
+export interface NewMessage {
+  content: string;
 }
 
 export interface NewMessageAttachment {

@@ -1,7 +1,6 @@
 import { fileURLToPath, URL } from 'node:url';
 
 import { defineConfig } from 'vite';
-import VueRouter from 'unplugin-vue-router/vite';
 import vue from '@vitejs/plugin-vue';
 import vueDevTools from 'vite-plugin-vue-devtools';
 import tailwindcss from 'tailwindcss';
@@ -9,14 +8,7 @@ import autoprefixer from 'autoprefixer';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    VueRouter({
-      /* options */
-      root: fileURLToPath(new URL('./', import.meta.url)),
-    }),
-    vue(),
-    vueDevTools(),
-  ],
+  plugins: [vue(), vueDevTools()],
   envDir: '../',
   build: {
     outDir: '../dist/web',

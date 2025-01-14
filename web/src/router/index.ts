@@ -1,9 +1,10 @@
 import { createAuthGuard } from '@auth0/auth0-vue';
 import { createRouter, createWebHistory } from 'vue-router';
-import { routes } from 'vue-router/auto-routes';
-import { initializeAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
+import { initializeAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import { globalAuth0 } from '@/plugins/auth0';
 import CallbackErrorView from '@/view/CallbackErrorView.vue';
+import MainView from '@/views/MainView.vue';
+import ChatView from '@/views/ChannelView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,7 +20,22 @@ const router = createRouter({
         return { path: appState.appState?.target };
       },
     },
-    ...routes,
+    {
+      path: '/',
+      name: 'home',
+      component: MainView,
+      children: [
+        {
+          path: 'channels',
+          redirect: '/',
+        },
+        {
+          path: 'channels/:channelId',
+          name: 'channels',
+          component: ChatView,
+        },
+      ],
+    },
   ],
 });
 

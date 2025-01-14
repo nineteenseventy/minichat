@@ -39,6 +39,10 @@ export const useUserStore = defineStore('user', () => {
   function unsubscribeUser(userId: string) {
     const storedUser = computed(() => users.value.find((v) => v.id === userId));
     if (!storedUser.value) return;
+    if (storedUser.value.referenceCounter === 0) {
+      console.warn('unsubscribeUser was called to often for user', userId);
+      return;
+    }
     storedUser.value.referenceCounter--;
   }
 

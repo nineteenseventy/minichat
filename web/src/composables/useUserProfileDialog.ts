@@ -9,7 +9,7 @@ export const useUserProfileDialog = function () {
   const dialog = useDialog();
 
   const UserProfileComponent = defineAsyncComponent(
-    () => import('@/components/UserProfile.dialog.vue'),
+    () => import('@/components/UserProfileDialog.vue'),
   );
 
   return (user: string) =>
@@ -19,6 +19,7 @@ export const useUserProfileDialog = function () {
         closable: true,
         closeOnEscape: true,
         modal: true,
+        appendTo: 'self',
         style: {
           width: '50vw',
           'padding-top': '1rem',

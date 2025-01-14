@@ -3,11 +3,12 @@ import { useApi } from '@/composables/useApi';
 import type { UserProfile } from '@/interfaces/userProfile.interface';
 import { computed, inject } from 'vue';
 import type { DynamicDialogInstance } from 'primevue/dynamicdialogoptions';
-import { useAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
+import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
-import UserPictureOnlineStatusComponent from './UserPictureOnlineStatus.component.vue';
-import SpinnerComponent from './Spinner.component.vue';
+import UserPictureOnlineStatusComponent from './UserPictureOnlineStatusComponent.vue';
+import SpinnerComponent from './SpinnerComponent.vue';
+import { useChannelStore } from '@/stores/channelStore';
 
 interface DialogRef {
   value: DynamicDialogInstance;
@@ -15,9 +16,10 @@ interface DialogRef {
 const dialogRef = inject<DialogRef>('dialogRef');
 const router = useRouter();
 
+const channelStore = useChannelStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
-const user = dialogRef?.value.data.user ?? authenticatedUserId;
+const user = (dialogRef?.value.data.user as string) ?? authenticatedUserId;
 const { data, error, isFetching } = useApi(`/users/${user}/profile`, {
   afterFetch(ctx) {
     if (dialogRef) {
@@ -37,6 +39,18 @@ const editMyProfile = () => {
 const bio = computed(() => {
   return data?.value?.bio?.split('\n') ?? [];
 });
+
+const messageUser = async () => {
+  const channel = await channelStore.getDirectChannel(user);
+  if (channel.id) {
+    router.push(`/channels/${channel.id}`);
+    close();
+  } else {
+    console.warn(
+      'something went wrong while trying to find/create channel for this user',
+    );
+  }
+};
 </script>
 
 <template>
@@ -47,7 +61,7 @@ const bio = computed(() => {
     >
       <SpinnerComponent />
     </div>
-    <UserPictureOnlineStatusComponent :userId="user" />
+    <UserPictureOnlineStatusComponent :userId="user" class="h-10 w-10" />
     <span class="font-bold text-2xl mix-blend-difference">{{
       data?.username
     }}</span>
@@ -55,7 +69,7 @@ const bio = computed(() => {
       >Profile Could not be retrieved!</span
     >
     <div
-      class="mt-4 flex flex-col bg-transparent bg-opacity-30 rounded-lg px-2 py-4 min-h-20"
+      class="mt-4 flex flex-col bg-black bg-opacity-30 rounded-lg px-2 py-4 min-h-20"
     >
       <span class="font-bold mb-2">Bio</span>
       <div class="flex flex-col">
@@ -65,6 +79,7 @@ const bio = computed(() => {
     <div class="flex gap-4 mt-4">
       <Button @click="close()">Close</Button>
       <Button v-if="isMe" @click="editMyProfile()">Edit</Button>
+      <Button v-if="!isMe" @click="messageUser()">Message</Button>
     </div>
   </div>
 </template>
