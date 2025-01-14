@@ -166,26 +166,24 @@ func getMessagesBeforeAfter(ctx context.Context, channelId string, isBefore bool
 	return parseMessages(rows, buffer)
 }
 
-func getMessagesHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	channelId := chi.URLParam(r, "channelId")
-	query := r.URL.Query()
+func getMessagesHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	channelId := chi.URLParam(request, "channelId")
+	query := request.URL.Query()
 
 	var start, count uint64 = 0, 10
 	var err error
 
 	if start_param := query.Get("start"); start_param != "" {
 		start, err = strconv.ParseUint(start_param, 10, 64)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 	}
 
 	if count_param := query.Get("count"); count_param != "" {
 		count, err = strconv.ParseUint(count_param, 10, 64)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 	}
@@ -195,15 +193,13 @@ func getMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	var isAfter bool
 	if before_param := query.Get("before"); before_param != "" {
 		timestamp, err = coreutil.ParseTimestamp(before_param)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 		isBefore = true
 	} else if after_param := query.Get("after"); after_param != "" {
 		timestamp, err = coreutil.ParseTimestamp(after_param)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 		isAfter = true
@@ -216,28 +212,26 @@ func getMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		err = getMessages(ctx, channelId, start, count, &messages)
 	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	httputil.JSONResponse(w, httputil.NewResult(messages))
+	httputil.JSONResponse(writer, httputil.NewResult(messages))
 }
 
-func postMessageHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	channelId := chi.URLParam(r, "channelId")
+func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	channelId := chi.URLParam(request, "channelId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
 	var basemessage minichat.MessageBase
-	err := httputil.JSONRequest(r, &basemessage)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	err := httputil.JSONRequest(request, &basemessage)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
 	if basemessage.Content == "" {
-		http.Error(w, "content is required", http.StatusBadRequest)
+		http.Error(writer, "content is required", http.StatusBadRequest)
 		return
 	}
 
@@ -257,8 +251,7 @@ func postMessageHandler(w http.ResponseWriter, r *http.Request) {
 		basemessage.Content,
 	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &timestamp, &message.Read)
 	message.Timestamp = coreutil.FormatTimestampz(timestamp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
@@ -272,28 +265,26 @@ func postMessageHandler(w http.ResponseWriter, r *http.Request) {
 		channelId,
 		message.Timestamp,
 	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	httputil.JSONResponse(w, message)
+	httputil.JSONResponse(writer, message)
 }
 
-func patchMessageHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	messageId := chi.URLParam(r, "messageId")
+func patchMessageHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	messageId := chi.URLParam(request, "messageId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
 	var basemessage minichat.MessageBase
-	err := httputil.JSONRequest(r, &basemessage)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	err := httputil.JSONRequest(request, &basemessage)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
 	if basemessage.Content == "" {
-		http.Error(w, "content is required", http.StatusBadRequest)
+		http.Error(writer, "content is required", http.StatusBadRequest)
 		return
 	}
 
@@ -306,15 +297,14 @@ func patchMessageHandler(w http.ResponseWriter, r *http.Request) {
 		"SELECT id, channel_id, author_id, content, timestamp, true FROM minichat.messages WHERE id = $1",
 		messageId,
 	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &timestamp, &message.Read)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
 	message.Timestamp = coreutil.FormatTimestampz(timestamp)
 
 	if message.AuthorId != userId {
-		http.Error(w, "messages may only be edited by their author", http.StatusUnauthorized)
+		http.Error(writer, "messages may only be edited by their author", http.StatusUnauthorized)
 		return
 	}
 
@@ -324,19 +314,18 @@ func patchMessageHandler(w http.ResponseWriter, r *http.Request) {
 		basemessage.Content,
 		messageId,
 	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
 	message.Content = basemessage.Content
 
-	httputil.JSONResponse(w, message)
+	httputil.JSONResponse(writer, message)
 }
 
-func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	messageId := chi.URLParam(r, "messageId")
+func deleteMessageHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	messageId := chi.URLParam(request, "messageId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
 	conn := database.GetDatabase()
@@ -348,15 +337,14 @@ func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 		"SELECT id, channel_id, author_id, content, timestamp, true FROM minichat.messages WHERE id = $1",
 		messageId,
 	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &timestamp, &message.Read)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
 	message.Timestamp = coreutil.FormatTimestampz(timestamp)
 
 	if message.AuthorId != userId {
-		http.Error(w, "messages may only be deleted by their author", http.StatusUnauthorized)
+		http.Error(writer, "messages may only be deleted by their author", http.StatusUnauthorized)
 		return
 	}
 
@@ -365,12 +353,11 @@ func deleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 		"DELETE FROM minichat.messages WHERE id = $1",
 		messageId,
 	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	httputil.JSONResponse(w, message)
+	httputil.JSONResponse(writer, message)
 }
 
 func MessagesRouter(router chi.Router) {

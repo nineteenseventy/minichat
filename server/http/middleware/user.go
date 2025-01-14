@@ -11,6 +11,7 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/jackc/pgx/v5"
 	"github.com/nineteenseventy/minichat/core/database"
+	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/logging"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
@@ -92,8 +93,7 @@ func UserMiddlewareFactory() func(http.Handler) http.Handler {
 
 			if err != nil && err == pgx.ErrNoRows {
 				token, err := jwtmiddleware.AuthHeaderTokenExtractor(request)
-				if err != nil {
-					http.Error(writer, err.Error(), http.StatusInternalServerError)
+				if httputil.HandleError(writer, err) {
 					return
 				}
 				user, err := getUserInfo(token)
@@ -109,8 +109,7 @@ func UserMiddlewareFactory() func(http.Handler) http.Handler {
 					return
 				}
 				logger.Info().Str("id", id).Str("idpId", idpId).Msg("Created new user")
-			} else if err != nil {
-				http.Error(writer, err.Error(), http.StatusInternalServerError)
+			} else if httputil.HandleError(writer, err) {
 				return
 			}
 
