@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/url"
 
@@ -11,7 +10,6 @@ import (
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/nineteenseventy/minichat/core/database"
 	"github.com/nineteenseventy/minichat/core/logging"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
@@ -20,7 +18,7 @@ import (
 func getUserInfo(token string) (*auth0auth.UserInfoResponse, error) {
 	args := serverutil.GetArgs()
 
-	url, err := url.JoinPath(args.Auth0Domain, "userinfo")
+	url, err := url.JoinPath("https://"+args.Auth0Domain, "userinfo")
 	if err != nil {
 		return nil, err
 	}
@@ -92,31 +90,28 @@ func UserMiddlewareFactory() func(http.Handler) http.Handler {
 				idpId,
 			).Scan(&id)
 
-			if err != nil {
-				var pgErr *pgconn.PgError
-				if errors.As(err, &pgErr) && pgErr == pgx.ErrNoRows {
-					token, err := jwtmiddleware.AuthHeaderTokenExtractor(request)
-					if err != nil {
-						http.Error(writer, err.Error(), http.StatusInternalServerError)
-						return
-					}
-					user, err := getUserInfo(token)
-					if err != nil {
-						logger.Err(err).Str("idpId", idpId).Msg("Failed to get user info")
-						http.Error(writer, err.Error(), http.StatusInternalServerError)
-						return
-					}
-					id, err = createNewUser(*user)
-					if err != nil {
-						logger.Err(err).Str("idpId", idpId).Msg("Failed to create new user")
-						http.Error(writer, err.Error(), http.StatusInternalServerError)
-						return
-					}
-					logger.Info().Str("id", id).Str("idpId", idpId).Msg("Created new user")
-				} else {
+			if err == pgx.ErrNoRows {
+				token, err := jwtmiddleware.AuthHeaderTokenExtractor(request)
+				if err != nil {
 					http.Error(writer, err.Error(), http.StatusInternalServerError)
 					return
 				}
+				user, err := getUserInfo(token)
+				if err != nil {
+					logger.Err(err).Str("idpId", idpId).Msg("Failed to get user info")
+					http.Error(writer, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				id, err = createNewUser(*user)
+				if err != nil {
+					logger.Err(err).Str("idpId", idpId).Msg("Failed to create new user")
+					http.Error(writer, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				logger.Info().Str("id", id).Str("idpId", idpId).Msg("Created new user")
+			} else if err != nil {
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				return
 			}
 
 			next.ServeHTTP(writer, request.WithContext(context.WithValue(request.Context(), serverutil.UserIdContextKey{}, id)))
