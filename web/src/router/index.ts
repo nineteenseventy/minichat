@@ -2,7 +2,7 @@ import { createAuthGuard } from '@auth0/auth0-vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { initializeAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import { globalAuth0 } from '@/plugins/auth0';
-import CallbackErrorView from '@/view/CallbackErrorView.vue';
+import CallbackErrorView from '@/views/CallbackErrorView.vue';
 import MainView from '@/views/MainView.vue';
 import ChatView from '@/views/ChannelView.vue';
 
@@ -14,10 +14,14 @@ const router = createRouter({
       name: 'callback',
       component: CallbackErrorView,
       beforeEnter: async (to) => {
-        const appState = await globalAuth0.handleRedirectCallback(to.fullPath);
-        console.log(globalAuth0.error);
-        if (globalAuth0.error) return { params: { error: globalAuth0.error } };
-        return { path: appState.appState?.target };
+        let appState;
+        try {
+          appState = await globalAuth0.handleRedirectCallback(to.fullPath);
+        } catch (error) {
+          console.error('Error handling redirect callback:', error);
+          return;
+        }
+        return { path: appState.appState?.target ?? '/' };
       },
     },
     {
@@ -44,6 +48,9 @@ router.beforeEach((to) => {
   return createAuthGuard()(to);
 });
 
-router.beforeEach(initializeAuthenticatedUserStore);
+router.beforeEach((to) => {
+  if (to.name === 'callback') return;
+  return initializeAuthenticatedUserStore();
+});
 
 export default router;

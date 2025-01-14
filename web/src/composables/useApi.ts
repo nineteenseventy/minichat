@@ -6,7 +6,6 @@ export const useApi = createFetch({
   options: {
     async beforeFetch({ options }) {
       const token = await globalAuth0.getAccessTokenSilently();
-      // if (!options.headers) options.headers = {};
       (<Record<string, string>>options.headers).Authorization =
         `Bearer ${token}`;
       return { options };
