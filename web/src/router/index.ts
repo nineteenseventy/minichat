@@ -5,6 +5,7 @@ import { globalAuth0 } from '@/plugins/auth0';
 import CallbackErrorView from '@/views/CallbackErrorView.vue';
 import MainView from '@/views/MainView.vue';
 import ChatView from '@/views/ChannelView.vue';
+import UserSettingsComponent from '@/components/UserSettingsComponent.vue';
 import { globalEnv } from '@/plugins/assetEnvPlugin';
 
 const router = createRouter({
@@ -30,6 +31,11 @@ const router = createRouter({
       name: 'home',
       component: MainView,
       children: [
+        {
+          path: '/settings/profile',
+          name: 'profileSettings',
+          component: UserSettingsComponent,
+        },
         {
           path: 'channels',
           redirect: '/',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Card from 'primevue/card';
-import { onBeforeMount, onBeforeUnmount } from 'vue';
+import { onBeforeMount, onBeforeUnmount, computed } from 'vue';
 import UserComponent from '@/components/UserComponent.vue';
 import { useUserStore } from '@/stores/userStore';
 import { useTimeoutPoll } from '@vueuse/core';
@@ -9,6 +9,7 @@ import ChannelsComponent from '@/components/ChannelsComponent.vue';
 import { useOnlineStatusStore } from '@/stores/onlineStatusStore';
 import { useChannelStore } from '@/stores/channelStore';
 import { useRouteParam } from '@/composables/useRouteParam';
+import { useRoute } from 'vue-router';
 
 const pollIntervals = [
   useTimeoutPoll(async () => await userStore.updateStore(), 60000),
@@ -31,6 +32,10 @@ const authenticatedUserId = useAuthenticatedUserStore().id;
 
 const nestedRouteIsActive = useRouteParam('channelId');
 console.log('route param:', nestedRouteIsActive.value);
+
+const showEmptyChannelMessage = computed(() => {
+  return !nestedRouteIsActive && !useRoute().path.endsWith('/settings/profile');
+});
 </script>
 
 <template>
@@ -44,7 +49,7 @@ console.log('route param:', nestedRouteIsActive.value);
       </Card>
     </nav>
     <main class="flex-1">
-      <div v-if="!nestedRouteIsActive" class="flex h-full">
+      <div v-if="showEmptyChannelMessage" class="flex h-full">
         <Card class="justify-self-center m-auto">
           <template #content>
             <p class="text-center">Select a channel to display its messages.</p>
