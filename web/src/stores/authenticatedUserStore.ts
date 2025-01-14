@@ -17,7 +17,7 @@ export async function initializeAuthenticatedUserStore() {
 
   const store = useAuthenticatedUserStore();
   const { data } = await useApi('/users/me').json<User>();
-  if (!data.value) throw new Error('could');
+  if (!data.value) throw new Error('could not fetch authenticated user');
   store.authenticatedUserId = data.value.id;
 
   _resolve!();

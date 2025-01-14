@@ -118,6 +118,7 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(middleware.LoggerMiddlewareFactory())
 	router.Use(middleware.CorsMiddlewareFactory())
+	router.Mount("/", HealthRouter())
 	router.Get("/{bucket}/*", serve)
 
 	host := httputil.ParseHost(args.Host, args.Port)

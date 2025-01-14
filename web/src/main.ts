@@ -11,30 +11,38 @@ import DialogService from 'primevue/dialogservice';
 import ConfirmationService from 'primevue/confirmationservice';
 
 import App from './App.vue';
-import router from './router';
-import auth0 from './auth0';
+import { auth0 } from './plugins/auth0';
 import Ripple from 'primevue/ripple';
+import { assetEnv, loadGlobalEnv } from './plugins/assetEnvPlugin';
 
-const app = createApp(App);
-const pinia = createPinia();
+async function main() {
+  // throw new Error('Not implemented');
+  await loadGlobalEnv();
 
-app.use(router);
-app.use(pinia);
-app.use(auth0);
-app.use(PrimeVue, {
-  theme: {
-    preset: Theme,
-    options: {
-      darkModeSelector: 'system',
-      cssLayer: {
-        name: 'primevue',
-        order: 'tailwind-base, primevue, tailwind-utilities',
+  const app = createApp(App);
+  const pinia = createPinia();
+
+  app.use((await import('./router')).default);
+  app.use(pinia);
+  app.use(auth0);
+  app.use(assetEnv);
+  app.use(PrimeVue, {
+    theme: {
+      preset: Theme,
+      options: {
+        darkModeSelector: 'system',
+        cssLayer: {
+          name: 'primevue',
+          order: 'tailwind-base, primevue, tailwind-utilities',
+        },
       },
     },
-  },
-});
-app.use(DialogService);
-app.use(ConfirmationService);
-app.directive('ripple', Ripple);
+  });
+  app.use(DialogService);
+  app.use(ConfirmationService);
+  app.directive('ripple', Ripple);
 
-app.mount('app-root');
+  app.mount('app-root');
+}
+
+main().catch(console.error);

@@ -1,0 +1,141 @@
+version: '3'
+
+services:
+  web:
+    image: ghcr.io/nineteenseventy/minichat/web:latest
+    restart: always
+    networks:
+      - minichat
+    environment:
+      - EXTERNAL_URL=http://localhost:8080
+      - API_URL=http://localhost:3000/api
+      - AUTH0_DOMAIN=minichat.eu.auth0.com
+      - AUTH0_CLIENT_ID=QikDGdLbvyneGAHkHmWP3DjrG3nGe0s7
+      - AUTH0_AUDIENCE=https://minichat.eu.auth0.com/api/v2/
+    ports:
+      - '8080:8080'
+
+  server:
+    image: ghcr.io/nineteenseventy/minichat/server:latest
+    restart: always
+    environment:
+      - MINICHAT_POSTGRES_HOST=postgres
+      - MINICHAT_POSTGRES_DATABASE=minichat
+      - MINICHAT_POSTGRES_USER=postgres
+      - MINICHAT_POSTGRES_PASSWORD=postgres
+      - MINICHAT_AUTH0_DOMAIN=minichat.eu.auth0.com
+      - MINICHAT_AUTH0_AUDIENCE=https://minichat.eu.auth0.com/api/v2/
+      - MINICHAT_AUTH0_CLIENT_ID=QikDGdLbvyneGAHkHmWP3DjrG3nGe0s7
+      - MINICHAT_AUTH0_CLIENT_SECRET=Yg2lLQ6XAnX_M8MoaZ9L7Kx9xSucZDLvoVaCzTG4JQ1no6KXk1wk4M5WxU2W58iT
+      - MINICHAT_REDIS_HOST=redis
+      - MINICHAT_REDIS_PORT=6379
+      - MINICHAT_MINIO_ENDPOINT=localhost
+      - MINICHAT_MINIO_PORT=9000
+      - MINICHAT_MINIO_ACCESS_KEY=admin
+      - MINICHAT_MINIO_SECRET_KEY=@Password123!
+      - MINICHAT_MINIO_USE_SSL=false
+      - MINICHAT_CDN_URL=http://localhost:9000
+    networks:
+      - minichat
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+
+  minioserve:
+    image: ghcr.io/nineteenseventy/minichat/minioserve:latest
+    restart: always
+    networks:
+      - minichat
+    entrypoint: mc
+    ports:
+      - '3002:3000'
+    environment:
+      - MINIOSERVE_ALLOWED_BUCKET_NAMES=minichat,profile
+      - MINICHAT_MINIO_ENDPOINT=localhost
+      - MINICHAT_MINIO_PORT=9000
+      - MINICHAT_MINIO_ACCESS_KEY=admin
+      - MINICHAT_MINIO_SECRET_KEY=@Password123!
+      - MINICHAT_MINIO_USE_SSL=false
+    depends_on:
+      storage:
+        condition: service_healthy
+
+  database-init:
+    image: ghcr.io/nineteenseventy/minichat/database:latest
+    restart: 'no'
+    networks:
+      - minichat
+    environment:
+      - PGHOST=postgres
+      - PGDATABASE=minichat
+      - PGUSER=postgres
+      - PGPASSWORD=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    networks:
+      - minichat
+    user: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=minichat
+    ports:
+      - '127.0.0.1:5433:5432/tcp'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready', '-d', '$POSTGRES_DB']
+      interval: 10s
+      timeout: 60s
+      retries: 5
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  storage:
+    image: minio/minio:latest
+    restart: always
+    command: minio server /var/lib/minio/data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=@Password123!
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - storage:/var/lib/minio/data
+    networks:
+      - minichat
+    healthcheck:
+      test: ['CMD', 'mc', 'ping', 'local', '--dp', '-c', '1']
+      interval: 10s
+      timeout: 60s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    restart: always
+    networks:
+      - minichat
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 60s
+      retries: 5
+
+volumes:
+  db:
+  storage:
+
+networks:
+  minichat:
