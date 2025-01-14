@@ -32,16 +32,17 @@ const { data, error, isFetching } = api(`/users/${user}/profile`, {
 
 const isMe = computed(() => data?.value?.id === authenticatedUserId);
 const close = () => dialogRef?.value.close();
-const editMyProfile = () => {
-  dialogRef?.value.close();
-  router.push('/settings/profile');
-};
 
 const bio = computed(() => {
   return data?.value?.bio?.split('\n') ?? [];
 });
 
-const messageUser = async () => {
+function editMyProfile() {
+  router.push('/settings/profile');
+  dialogRef?.value.close();
+}
+
+async function messageUser() {
   const channel = await channelStore.getDirectChannel(user);
   if (channel.id) {
     router.push(`/channels/${channel.id}`);
@@ -51,7 +52,13 @@ const messageUser = async () => {
       'something went wrong while trying to find/create channel for this user',
     );
   }
-};
+}
+
+async function logout() {
+  console.debug('logout() not implemented yet');
+  router.push('not-implemented');
+  dialogRef?.value.close();
+}
 </script>
 
 <template>
@@ -79,8 +86,9 @@ const messageUser = async () => {
     </div>
     <div class="flex gap-4 mt-4">
       <Button @click="close()">Close</Button>
-      <Button v-if="isMe" @click="editMyProfile()">Edit</Button>
       <Button v-if="!isMe" @click="messageUser()">Message</Button>
+      <Button v-if="isMe" @click="editMyProfile()">Edit</Button>
+      <Button v-if="isMe" @click="logout()" class="ml-auto">Logout</Button>
     </div>
   </div>
 </template>

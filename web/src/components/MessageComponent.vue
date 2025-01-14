@@ -43,7 +43,7 @@ const confirmDeleteMessage = (event: Event) => {
   console.log(event);
   // (event.target as HTMLSpanElement).focus();
   confirm.require({
-    target: event.currentTarget as HTMLSpanElement,
+    target: event.target as HTMLSpanElement,
     message: 'Are your sure you want to delete this message?',
     icon: 'pi pi-exclamation-triangle',
     rejectProps: {
