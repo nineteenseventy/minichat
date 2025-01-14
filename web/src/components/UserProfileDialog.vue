@@ -15,12 +15,13 @@ interface DialogRef {
 }
 const dialogRef = inject<DialogRef>('dialogRef');
 const router = useRouter();
+const api = useApi;
 
 const channelStore = useChannelStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
 const user = (dialogRef?.value.data.user as string) ?? authenticatedUserId;
-const { data, error, isFetching } = useApi(`/users/${user}/profile`, {
+const { data, error, isFetching } = api(`/users/${user}/profile`, {
   afterFetch(ctx) {
     if (dialogRef) {
       dialogRef.value.options.props!.style.backgroundColor = ctx.data.color;

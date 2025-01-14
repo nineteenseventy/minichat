@@ -1,7 +1,8 @@
 import { createFetch } from '@vueuse/core';
-import { globalAuth0 } from '@/plugins/auth0';
 import { globalEnv } from '@/plugins/assetEnvPlugin';
+import { globalAuth0 } from '@/plugins/auth0';
 
+console.log('use Api gets imported');
 export const useApi = createFetch({
   baseUrl: globalEnv.VITE_API_URL,
   options: {

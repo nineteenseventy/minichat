@@ -11,7 +11,6 @@ import DialogService from 'primevue/dialogservice';
 import ConfirmationService from 'primevue/confirmationservice';
 
 import App from './App.vue';
-import router from './router';
 import { auth0 } from './plugins/auth0';
 import Ripple from 'primevue/ripple';
 import { assetEnv, loadGlobalEnv } from './plugins/assetEnvPlugin';
@@ -23,10 +22,10 @@ async function main() {
   const app = createApp(App);
   const pinia = createPinia();
 
-  app.use(assetEnv);
-  app.use(router);
+  app.use((await import('./router')).default);
   app.use(pinia);
   app.use(auth0);
+  app.use(assetEnv);
   app.use(PrimeVue, {
     theme: {
       preset: Theme,
