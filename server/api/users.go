@@ -325,7 +325,7 @@ func UsersRouter(router chi.Router) {
 	router.Get("/users/{id}/profile", getUserProfileHandler)
 	router.Get("/users/{id}/status", getUserStatusHandler)
 	router.Get("/users/{id}/channel", getUserChannelHandler)
-	router.Post("users/{id}/settings", userSettingsHandler)
+	router.Post("/users/{id}/settings", userSettingsHandler)
 	router.Post("/users/echo", echoHandler)
 	router.Post("/users/echoAndGetStatuses", echoAndGetStatusesHandler)
 
