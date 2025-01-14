@@ -308,7 +308,11 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 		channel.CreatedAt = coreutil.FormatTimestampz(createdAt)
 		channel.UnreadCount = 0
 	} else {
-		rows.Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title)
+		err := rows.Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		channel.CreatedAt = coreutil.FormatTimestampz(createdAt)
 	}
 
