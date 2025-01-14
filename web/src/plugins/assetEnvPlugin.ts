@@ -5,18 +5,25 @@ export interface AssetEnvPluginOptions {
   path?: string;
 }
 
-// export type AssetEnvPluginOptions = _AssetEnvPluginOptions | undefined;
+const defaultPath = '/assets/env';
+export const globalEnv: ImportMetaEnv = {} as ImportMetaEnv;
+export async function loadGlobalEnv(options?: AssetEnvPluginOptions) {
+  const path = options?.path ?? defaultPath;
+  const response = await fetch(path);
+  if (!response.ok) return;
+  const txtEnv = await response.text();
+  const parsed = parse(txtEnv);
+  populate(globalEnv, parsed); // first load from .env file so that Vite env doesn't overwrite
+  populate(globalEnv, import.meta.env); // then load from Vite env
+}
 
-const defaultPath = '/assets/.env';
-const processEnv = import.meta.env;
+// Vue Plugin Stuff
 
-export const assetEnvLoader: Plugin<AssetEnvPluginOptions> = {
-  async install(_, options = {}) {
-    const path = options?.path ?? defaultPath;
-    const response = await fetch(path);
-    if (!response.ok) return;
-    const env = await response.text();
-    const parsed = parse(env);
-    populate(parsed, processEnv);
+const ENV_KEY = 'env';
+export const ENV_INJECTION_KEY = Symbol(ENV_KEY);
+
+export const assetEnv: Plugin = {
+  async install(app) {
+    app.provide(ENV_INJECTION_KEY, globalEnv);
   },
 };

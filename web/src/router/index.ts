@@ -1,8 +1,9 @@
 import { createAuthGuard } from '@auth0/auth0-vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { routes } from 'vue-router/auto-routes';
-import auth0 from '../auth0';
 import { initializeAuthenticatedUserStore } from '@/stores/authenticatedUser.store';
+import { globalAuth0 } from '@/plugins/auth0';
+import CallbackErrorView from '@/view/CallbackErrorView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,9 +11,11 @@ const router = createRouter({
     {
       path: '/callback',
       name: 'callback',
-      redirect: '/',
+      component: CallbackErrorView,
       beforeEnter: async (to) => {
-        const appState = await auth0.handleRedirectCallback(to.fullPath);
+        const appState = await globalAuth0.handleRedirectCallback(to.fullPath);
+        console.log(globalAuth0.error);
+        if (globalAuth0.error) return { params: { error: globalAuth0.error } };
         return { path: appState.appState?.target };
       },
     },

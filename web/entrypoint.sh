@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/sh
 set -e
 
-cat <<EOF > /usr/share/nginx/html/assets/.env
+cat <<EOF > /usr/share/nginx/html/assets/env
 VITE_AUTH0_DOMAIN=${AUTH0_DOMAIN}
 VITE_AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
 VITE_AUTH0_AUDIENCE=${AUTH0_AUDIENCE}

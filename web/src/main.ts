@@ -10,28 +10,35 @@ import DialogService from 'primevue/dialogservice';
 
 import App from './App.vue';
 import router from './router';
-import auth0 from './auth0';
-import { assetEnvLoader } from './plugins/AssetEnvPlugin';
+import { auth0 } from './plugins/auth0';
+import { assetEnv, loadGlobalEnv } from './plugins/assetEnvPlugin';
 
-const app = createApp(App);
-const pinia = createPinia();
+async function main() {
+  // throw new Error('Not implemented');
+  await loadGlobalEnv();
 
-app.use(assetEnvLoader, {});
-app.use(router);
-app.use(pinia);
-app.use(auth0);
-app.use(PrimeVue, {
-  theme: {
-    preset: Theme,
-    options: {
-      darkModeSelector: 'system',
-      cssLayer: {
-        name: 'primevue',
-        order: 'tailwind-base, primevue, tailwind-utilities',
+  const app = createApp(App);
+  const pinia = createPinia();
+
+  app.use(assetEnv);
+  app.use(router);
+  app.use(pinia);
+  app.use(auth0);
+  app.use(PrimeVue, {
+    theme: {
+      preset: Theme,
+      options: {
+        darkModeSelector: 'system',
+        cssLayer: {
+          name: 'primevue',
+          order: 'tailwind-base, primevue, tailwind-utilities',
+        },
       },
     },
-  },
-});
-app.use(DialogService);
+  });
+  app.use(DialogService);
 
-app.mount('app-root');
+  app.mount('app-root');
+}
+
+main().catch(console.error);
