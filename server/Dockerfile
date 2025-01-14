@@ -6,14 +6,14 @@ RUN go mod download -x
 
 COPY server/ server/
 COPY core/ core/
-RUN go build -o /minioserve ./server
+RUN go build -o /server ./server
 
 FROM alpine:3.12
 
-COPY --from=build /minioserve /usr/local/bin/minioserve
+COPY --from=build /server /usr/local/bin/server
 
-ENV MINICHAT_HOST=localhost
+ENV MINICHAT_HOST=0.0.0.0
 ENV MINICHAT_PORT=3000
 EXPOSE $MINICHAT_PORT
 
-CMD [ "minioserve" ]
+CMD [ "server" ]

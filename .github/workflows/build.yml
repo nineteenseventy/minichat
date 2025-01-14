@@ -57,6 +57,7 @@ jobs:
           context: .
           file: ./web/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
 
   server:
@@ -85,6 +86,7 @@ jobs:
           context: .
           file: ./server/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
 
   minioserve:
@@ -113,6 +115,7 @@ jobs:
           context: .
           file: ./minioserve/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
 
   database:
@@ -152,4 +155,5 @@ jobs:
           context: .
           file: ./database/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}

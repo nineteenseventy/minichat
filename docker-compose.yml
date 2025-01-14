@@ -56,6 +56,19 @@ services:
       - MINICHAT_MINIO_SECRET_KEY=@Password123!
       - MINICHAT_MINIO_USE_SSL=false
 
+  database-init:
+    image: ghcr.io/nineteenseventy/minichat/database:latest
+    restart: 'no'
+    networks:
+      - minichat
+    environment:
+      - PGHOST=postgres
+      - PGDATABASE=minichat
+      - PGUSER=postgres
+      - PGPASSWORD=postgres
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:16-alpine
     restart: always
