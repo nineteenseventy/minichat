@@ -5,9 +5,10 @@ import { globalAuth0 } from '@/plugins/auth0';
 import CallbackErrorView from '@/views/CallbackErrorView.vue';
 import MainView from '@/views/MainView.vue';
 import ChatView from '@/views/ChannelView.vue';
+import { globalEnv } from '@/plugins/assetEnvPlugin';
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(globalEnv.BASE_URL),
   routes: [
     {
       path: '/callback',

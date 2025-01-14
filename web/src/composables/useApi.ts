@@ -1,8 +1,9 @@
 import { createFetch } from '@vueuse/core';
 import { globalAuth0 } from '@/plugins/auth0';
+import { globalEnv } from '@/plugins/assetEnvPlugin';
 
 export const useApi = createFetch({
-  baseUrl: import.meta.env.VITE_API_URL,
+  baseUrl: globalEnv.VITE_API_URL,
   options: {
     async beforeFetch({ options }) {
       const token = await globalAuth0.getAccessTokenSilently();
