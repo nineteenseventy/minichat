@@ -90,7 +90,7 @@ func UserMiddlewareFactory() func(http.Handler) http.Handler {
 				idpId,
 			).Scan(&id)
 
-			if err == pgx.ErrNoRows {
+			if err != nil && err == pgx.ErrNoRows {
 				token, err := jwtmiddleware.AuthHeaderTokenExtractor(request)
 				if err != nil {
 					http.Error(writer, err.Error(), http.StatusInternalServerError)
