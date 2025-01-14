@@ -56,13 +56,11 @@ func createNewUser(user auth0auth.UserInfoResponse) (string, error) {
 
 	var id string
 
-	username := user.Nickname
-
 	err := conn.QueryRow(
 		context.Background(),
 		`INSERT INTO minichat.users (idp_id, username) VALUES ($1, $2) RETURNING id`,
 		user.Sub,
-		username,
+		user.Nickname,
 	).Scan(&id)
 
 	if err != nil {
