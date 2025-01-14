@@ -7,8 +7,12 @@ export default {
     join(__dirname, 'src/**/*.{vue,js,ts,jsx,tsx}'),
   ],
   theme: {
-    extend: {},
+    extend: {
+      borderRadius: {
+        'content': 'var(--p-content-border-radius)',
+      },
+    },
   },
-  plugins: [import('tailwindcss-primeui')]
+  plugins: [require('tailwindcss-primeui')]
 }
 

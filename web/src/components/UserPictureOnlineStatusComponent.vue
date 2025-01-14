@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useOnlineStatusStore } from '@/stores/onlineStatus.store';
-import UserPictureComponent from './UserPicture.component.vue';
+import { useOnlineStatusStore } from '@/stores/onlineStatusStore';
+import UserPictureComponent from './UserPictureComponent.vue';
 import { onBeforeUnmount } from 'vue';
 
 const props = defineProps<{
@@ -19,12 +19,15 @@ const onlineStatus = onlineStatusStore.getOnlineStatus(_userId);
 <template>
   <UserPictureComponent
     :userId="_userId"
-    class="outline outline-2 outline-offset-2"
+    class="outline outline-2 outline-offset--1 p-1"
     :class="onlineStatus"
   />
 </template>
 
-<style scoped lang="scss">
+<style scoped>
+.outline-offset--1 {
+  outline-offset: -2px;
+}
 .online {
   outline-color: green;
 }

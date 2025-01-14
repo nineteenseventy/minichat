@@ -84,10 +84,12 @@ func debugRoute(prefix string, route chi.Routes) {
 			cleanPattern = strings.TrimSuffix(method.Pattern, "/*")
 		}
 		path := fmt.Sprintf("%s%s", prefix, cleanPattern)
-
-		if patternIsClean {
-			log.Debug().Str("path", path).Msg("Registered route")
+		for k := range method.Handlers {
+			if patternIsClean {
+				log.Debug().Str("path", path).Str("method", k).Msg("Registered route")
+			}
 		}
+
 		if method.SubRoutes != nil {
 			debugRoute(path, method.SubRoutes)
 		}

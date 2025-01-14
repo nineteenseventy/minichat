@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUserProfileDialog } from '@/composables/useUserProfileDialog';
-import UserPictureOnlineStatusComponent from './UserPictureOnlineStatus.component.vue';
-import { useUserStore } from '@/stores/user.store';
+import UserPictureOnlineStatusComponent from './UserPictureOnlineStatusComponent.vue';
+import { useUserStore } from '@/stores/userStore';
 import { onBeforeUnmount } from 'vue';
 
 const props = defineProps<{
@@ -17,12 +17,12 @@ const user = userStore.getUser(_userId);
 </script>
 
 <template>
-  <div
-    class="flex flex-row items-center cursor-pointer hover:underline"
-    @click="openProfile(_userId)"
-  >
-    <UserPictureOnlineStatusComponent :userId="_userId" />
-    <span class="font-bold ml-4 hover:underline">
+  <div class="flex flex-row items-center">
+    <UserPictureOnlineStatusComponent :userId="_userId" class="h-full" />
+    <span
+      @click="openProfile(_userId)"
+      class="font-bold ml-2 cursor-pointer hover:underline"
+    >
       {{ user?.username }}
     </span>
   </div>
