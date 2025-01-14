@@ -32,7 +32,7 @@ services:
       - '8081:8081'
 
   minioserve:
-    image: minio/mc:latest
+    image: ghcr.io/nineteenseventy/minichat/minioserve:latest
     restart: always
     networks:
       - minichat
@@ -46,7 +46,7 @@ services:
     image: postgres:16-alpine
     restart: always
     networks:
-      - 'dskills'
+      - minichat
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: dbc2024!

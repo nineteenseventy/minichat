@@ -11,10 +11,12 @@ import DialogService from 'primevue/dialogservice';
 import App from './App.vue';
 import router from './router';
 import auth0 from './auth0';
+import { assetEnvLoader } from './plugins/AssetEnvPlugin';
 
 const app = createApp(App);
 const pinia = createPinia();
 
+app.use(assetEnvLoader, {});
 app.use(router);
 app.use(pinia);
 app.use(auth0);

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+cat <<EOF > /usr/share/nginx/html/assets/.env
+VITE_AUTH0_DOMAIN=${AUTH0_DOMAIN}
+VITE_AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
+VITE_AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+VITE_EXTERNAL_URL=${EXTERNAL_URL}
+VITE_API_URL=${API_URL}
+EOF
+
+exec "$@"
