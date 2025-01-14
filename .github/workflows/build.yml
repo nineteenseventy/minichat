@@ -8,6 +8,16 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      latest:
+        description: 'Set latest tag'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - 'auto'
+          - 'true'
+          - 'false'
 
 jobs:
   web:
@@ -37,7 +47,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          tags: latest
+          flavor: |
+            latest=${{ inputs.latest }}
           images: ghcr.io/${{ github.repository }}/web
 
       - name: Docker build
@@ -64,7 +75,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          tags: latest
+          flavor: |
+            latest=${{ inputs.latest }}
           images: ghcr.io/${{ github.repository }}/server
 
       - name: Docker build
@@ -91,7 +103,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          tags: latest
+          flavor: |
+            latest=${{ inputs.latest }}
           images: ghcr.io/${{ github.repository }}/minioserve
 
       - name: Docker build
@@ -129,7 +142,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          tags: latest
+          flavor: |
+            latest=${{ inputs.latest }}
           images: ghcr.io/${{ github.repository }}/database
 
       - name: Docker build
