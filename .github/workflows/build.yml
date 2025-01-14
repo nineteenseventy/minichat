@@ -51,6 +51,12 @@ jobs:
             latest=${{ inputs.latest }}
           images: ghcr.io/${{ github.repository }}/web
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Docker build
         uses: docker/build-push-action@v6
         with:
@@ -80,6 +86,12 @@ jobs:
             latest=${{ inputs.latest }}
           images: ghcr.io/${{ github.repository }}/server
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Docker build
         uses: docker/build-push-action@v6
         with:
@@ -108,6 +120,12 @@ jobs:
           flavor: |
             latest=${{ inputs.latest }}
           images: ghcr.io/${{ github.repository }}/minioserve
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Docker build
         uses: docker/build-push-action@v6
@@ -148,6 +166,12 @@ jobs:
           flavor: |
             latest=${{ inputs.latest }}
           images: ghcr.io/${{ github.repository }}/database
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Docker build
         uses: docker/build-push-action@v6
