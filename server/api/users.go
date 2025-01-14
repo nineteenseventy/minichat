@@ -25,8 +25,7 @@ func getUsersHandler(writer http.ResponseWriter, request *http.Request) {
 			picture
 		FROM minichat.users`,
 	)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 	defer rows.Close()
@@ -36,8 +35,7 @@ func getUsersHandler(writer http.ResponseWriter, request *http.Request) {
 		var id, username string
 		var picture sql.NullString
 		err := rows.Scan(&id, &username, &picture)
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 		user := minichat.User{
@@ -72,8 +70,7 @@ func getUserHandler(writer http.ResponseWriter, request *http.Request) {
 		id,
 	).Scan(&id, &username, &picture)
 
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusNotFound)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
@@ -109,8 +106,7 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 		id,
 	).Scan(&id, &username, &bio, &picture, &color)
 
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusNotFound)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
@@ -242,8 +238,7 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 		meUserId,
 		userId,
 	)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
@@ -258,8 +253,7 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 			RETURNING id, type, created_at
 			`,
 		).Scan(&channel.Id, &channel.Type, &createdAt)
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 
@@ -273,8 +267,7 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 			meUserId,
 			userId,
 		)
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 
@@ -286,8 +279,7 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 			`,
 			channel.Id,
 		)
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 
@@ -300,8 +292,7 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 			`,
 			userId,
 		).Scan(&channel.Title)
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 
@@ -309,8 +300,7 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 		channel.UnreadCount = 0
 	} else {
 		err := rows.Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title)
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 		channel.CreatedAt = coreutil.FormatTimestampz(createdAt)

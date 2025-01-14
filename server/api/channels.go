@@ -63,8 +63,7 @@ func getChannelsHandler(writer http.ResponseWriter, request *http.Request) {
 		`,
 		userId,
 	)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 	defer rows.Close()
@@ -74,8 +73,7 @@ func getChannelsHandler(writer http.ResponseWriter, request *http.Request) {
 		var description sql.NullString
 		var createdAt pgtype.Timestamptz
 		err := rows.Scan(&channel.Id, &channel.Type, &createdAt, &channel.Title, &description, &channel.UnreadCount)
-		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		if httputil.HandleError(writer, err) {
 			return
 		}
 		channel.Description = httputil.ParseSqlString(description)
@@ -145,8 +143,7 @@ func getChannelHandler(writer http.ResponseWriter, request *http.Request) {
 	var channel minichat.Channel
 
 	err := getChannel(ctx, channelId, &channel)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
@@ -169,8 +166,7 @@ func setReadHandler(writer http.ResponseWriter, request *http.Request) {
 		userId,
 		channelId,
 	)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
