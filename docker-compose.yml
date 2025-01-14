@@ -115,7 +115,7 @@ services:
     networks:
       - minichat
     healthcheck:
-      test: ['CMD', 'mc', 'admin', 'info', 'localhost:9000']
+      test: ['CMD', 'mc', 'ping', 'local', '--dp', '-c', '1']
       interval: 10s
       timeout: 60s
       retries: 5
