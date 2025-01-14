@@ -18,7 +18,7 @@ const router = useRouter();
 const api = useApi;
 
 const channelStore = useChannelStore();
-const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
+const authenticatedUserId = useAuthenticatedUserStore().id;
 
 const user = (dialogRef?.value.data.user as string) ?? authenticatedUserId;
 const { data, error, isFetching } = api(`/users/${user}/profile`, {
