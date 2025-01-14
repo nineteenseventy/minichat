@@ -12,7 +12,6 @@ export let globalAuth0: Auth0VueClient;
 export const auth0: Plugin = {
   install(app) {
     const redirectUri = new URL('/callback', globalEnv.VITE_EXTERNAL_URL).href;
-    console.log(globalEnv.VITE_EXTERNAL_URL);
     const options: Auth0VueClientOptions = {
       domain: globalEnv.VITE_AUTH0_DOMAIN,
       clientId: globalEnv.VITE_AUTH0_CLIENT_ID,
