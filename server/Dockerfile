@@ -16,4 +16,6 @@ ENV MINICHAT_HOST=0.0.0.0
 ENV MINICHAT_PORT=3000
 EXPOSE $MINICHAT_PORT
 
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD [ "wget", "-q", "http://localhost:3000/health" ]
+
 CMD [ "server" ]
