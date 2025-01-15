@@ -6,10 +6,8 @@ const md = markdownit({
   html: false,
   breaks: true,
   highlight: function (str, lang): string {
-    console.log('lang:', hljs.getLanguage(lang));
     if (!(lang && hljs.getLanguage(lang)))
       return `<pre><code class="hljs">${str}</code></pre>`;
-
     const highlighted = hljs.highlight(lang, str, true);
     return `<pre><code class="hljs">${highlighted.value}</code></pre>`;
   },

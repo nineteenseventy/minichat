@@ -116,11 +116,13 @@ func getMessagesBeforeAfter(ctx context.Context, channelId string, isBefore bool
 
 	conn := database.GetDatabase()
 
-	var operator string
+	var operator, orderDir string
 	if isBefore {
 		operator = "<"
+		orderDir = "DESC"
 	} else {
 		operator = ">"
+		orderDir = "ASC"
 	}
 
 	rows, err := conn.Query(
@@ -148,9 +150,9 @@ func getMessagesBeforeAfter(ctx context.Context, channelId string, isBefore bool
 		LEFT JOIN minichat.attachments AS "attachment"
 		ON "attachment".message_id = "message".id
 		WHERE "message".channel_id = $1 AND "me_member".user_id = $2 AND "message"."timestamp" %s $3
-		ORDER BY "message"."timestamp" DESC
+		ORDER BY "message"."timestamp" %s
 		LIMIT $4
-	`, operator),
+	`, operator, orderDir),
 		channelId,
 		userId,
 		timestamp,

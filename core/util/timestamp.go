@@ -1,12 +1,16 @@
 package util
 
 import (
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func ParseTimestamp(timestamp string) (time.Time, error) {
+	if strings.HasSuffix(timestamp, "Z") {
+		timestamp = timestamp[:len(timestamp)-1] + "+0000"
+	}
 	return time.Parse("2006-01-02T15:04:05.000-0700", timestamp)
 }
 

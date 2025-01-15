@@ -93,6 +93,18 @@ export const useMessageStore = defineStore('message', () => {
     );
   }
 
+  function getMinimalMessages(channelId: Ref<string>) {
+    return computed(() =>
+      messages.value
+        .filter((v) => v.channelId === channelId.value)
+        .map((v) => ({
+          id: v.id,
+          timestamp: parseDate(v.timestamp),
+          read: v.read,
+        })),
+    );
+  }
+
   function clearMessages(options: ClearMessagesOptions) {
     const filters: ((v: Message) => boolean)[] = [];
 
@@ -135,6 +147,7 @@ export const useMessageStore = defineStore('message', () => {
     clearMessages,
     loadMessages,
     getMessageIds,
+    getMinimalMessages,
     sendMessage,
     updateMessage,
     deleteMessage,
