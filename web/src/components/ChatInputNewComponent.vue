@@ -5,10 +5,10 @@ import { useMessageStore } from '@/stores/messageStore';
 import type { NewMessage } from '@/interfaces/message.interface';
 import ChatInputComponent from './ChatInputComponent.vue';
 
+const props = defineProps<{ channelId: string }>();
+
 const messageStore = useMessageStore();
 const draftsStore = useMessageDraftsStore();
-
-const props = defineProps<{ channelId: string }>();
 
 const content = ref('');
 

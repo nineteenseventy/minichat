@@ -17,12 +17,13 @@ const md = markdownit({
 
 function sanitizeContent(content: string): string {
   return content
-    .replace(/(?:[^\\]|^)((?:\\{2})*)&nbsp;/g, '$1\\&')
+    .replace(/(?:[^\\]|^)((?:\\{2})*)&/g, '$1\\&')
     .replace(/\n(?=\n)/g, '\n&nbsp;');
 }
 
-export const markdownRender = () => (v: string) => {
-  const sanitized = sanitizeContent(v);
+export const useMessageRenderer = () => (content: string | undefined) => {
+  if (!content) return '';
+  const sanitized = sanitizeContent(content);
   const rendered = md.render(sanitized);
   return rendered;
 };

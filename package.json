@@ -21,6 +21,7 @@
   "dependencies": {
     "@auth0/auth0-vue": "^2.3.3",
     "@highlightjs/cdn-assets": "^11.11.1",
+    "@primevue/forms": "^4.2.5",
     "@primevue/themes": "^4.2.5",
     "@vueuse/core": "^12.4.0",
     "axios": "^1.7.7",

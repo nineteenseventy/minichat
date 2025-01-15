@@ -7,10 +7,12 @@ import (
 	"github.com/nineteenseventy/minichat/core/logging"
 )
 
+const ProfulePictureBucket = "profile"
+
 func ParseUserPictureUrl(picture sql.NullString) *string {
 	logger := logging.GetLogger("server.api.users.parsePictureUrl")
 	if picture.Valid {
-		pictureUrl, err := GetCdnUrl("profile", picture.String)
+		pictureUrl, err := GetCdnUrl(ProfulePictureBucket, picture.String)
 		if err != nil {
 			logger.Error().Err(err).Msg("failed to get picture url")
 			return nil

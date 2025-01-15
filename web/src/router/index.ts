@@ -4,8 +4,10 @@ import { initializeAuthenticatedUserStore } from '@/stores/authenticatedUserStor
 import { globalAuth0 } from '@/plugins/auth0';
 import CallbackErrorView from '@/views/CallbackErrorView.vue';
 import MainView from '@/views/MainView.vue';
-import ChatView from '@/views/ChannelView.vue';
+import ChannelView from '@/views/ChannelView.vue';
+import UserSettingsComponent from '@/views/UserSettingsView.vue';
 import { globalEnv } from '@/plugins/assetEnvPlugin';
+import NoChannelView from '@/views/NoChannelView.vue';
 
 const router = createRouter({
   history: createWebHistory(globalEnv.BASE_URL),
@@ -26,10 +28,19 @@ const router = createRouter({
       },
     },
     {
+      path: '/settings/profile',
+      name: 'profileSettings',
+      component: UserSettingsComponent,
+    },
+    {
       path: '/',
-      name: 'home',
       component: MainView,
       children: [
+        {
+          path: '',
+          name: 'home',
+          component: NoChannelView,
+        },
         {
           path: 'channels',
           redirect: '/',
@@ -37,7 +48,7 @@ const router = createRouter({
         {
           path: 'channels/:channelId',
           name: 'channels',
-          component: ChatView,
+          component: ChannelView,
         },
       ],
     },

@@ -7,14 +7,14 @@ import { parseDate } from '@/utils/date/parseDate';
 import { useMessageStore } from '@/stores/messageStore';
 import ChatInputComponent from './ChatInputComponent.vue';
 import type { NewMessage } from '@/interfaces/message.interface';
-import { markdownRender } from '@/utils/markdown/markdownRenderer';
+import { useMessageRenderer } from '@/composables/useMessageRenderer';
 import { useConfirm } from 'primevue/useconfirm';
 
 const props = defineProps<{
   messageId: string;
 }>();
 
-const mdRender = markdownRender();
+const messageRenderer = useMessageRenderer();
 
 const messageStore = useMessageStore();
 const message = messageStore.getMessage(computed(() => props.messageId));
@@ -40,10 +40,9 @@ function deleteMessage() {
 
 const confirm = useConfirm();
 const confirmDeleteMessage = (event: Event) => {
-  console.log(event);
   // (event.target as HTMLSpanElement).focus();
   confirm.require({
-    target: event.currentTarget as HTMLSpanElement,
+    target: event.target as HTMLSpanElement,
     message: 'Are your sure you want to delete this message?',
     icon: 'pi pi-exclamation-triangle',
     rejectProps: {
@@ -104,7 +103,7 @@ async function onAfterEdit() {
       </div>
     </div>
     <span class="flex flex-col gap-1" v-if="mode === 'view'">
-      <span v-html="mdRender(message?.content as string)" />
+      <span v-html="messageRenderer(message?.content)" />
     </span>
     <ChatInputComponent
       v-if="mode === 'edit'"

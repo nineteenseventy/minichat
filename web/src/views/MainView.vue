@@ -8,7 +8,6 @@ import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import ChannelsComponent from '@/components/ChannelsComponent.vue';
 import { useOnlineStatusStore } from '@/stores/onlineStatusStore';
 import { useChannelStore } from '@/stores/channelStore';
-import { useRouteParam } from '@/composables/useRouteParam';
 
 const pollIntervals = [
   useTimeoutPoll(async () => await userStore.updateStore(), 60000),
@@ -28,13 +27,10 @@ const userStore = useUserStore();
 const onlineStatusStore = useOnlineStatusStore();
 const channelStore = useChannelStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
-
-const nestedRouteIsActive = useRouteParam('channelId');
-console.log('route param:', nestedRouteIsActive.value);
 </script>
 
 <template>
-  <div class="flex flex-row gap-2 p-2 h-full">
+  <div class="flex flex-row gap-2 h-full w-full">
     <nav class="w-72 flex flex-col gap-2">
       <ChannelsComponent class="h-full" />
       <Card class="user-card">
@@ -44,13 +40,6 @@ console.log('route param:', nestedRouteIsActive.value);
       </Card>
     </nav>
     <main class="flex-1">
-      <div v-if="!nestedRouteIsActive" class="flex h-full">
-        <Card class="justify-self-center m-auto">
-          <template #content>
-            <p class="text-center">Select a channel to display its messages.</p>
-          </template>
-        </Card>
-      </div>
       <RouterView style="align-content: center" />
     </main>
   </div>

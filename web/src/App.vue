@@ -6,5 +6,7 @@ import DynamicDialog from 'primevue/dynamicdialog';
 <template>
   <DynamicDialog />
   <ConfirmPopup />
-  <RouterView />
+  <div class="flex p-2 h-full w-full">
+    <RouterView />
+  </div>
 </template>

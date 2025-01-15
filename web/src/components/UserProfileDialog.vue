@@ -21,27 +21,23 @@ const channelStore = useChannelStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
 const user = (dialogRef?.value.data.user as string) ?? authenticatedUserId;
-const { data, error, isFetching } = api(`/users/${user}/profile`, {
-  afterFetch(ctx) {
-    if (dialogRef) {
-      dialogRef.value.options.props!.style.backgroundColor = ctx.data.color;
-    }
-    return ctx;
-  },
-}).json<UserProfile>();
+const { data, error, isFetching } = api(
+  `/users/${user}/profile`,
+).json<UserProfile>();
 
 const isMe = computed(() => data?.value?.id === authenticatedUserId);
 const close = () => dialogRef?.value.close();
-const editMyProfile = () => {
-  dialogRef?.value.close();
-  router.push('/settings/profile');
-};
 
 const bio = computed(() => {
   return data?.value?.bio?.split('\n') ?? [];
 });
 
-const messageUser = async () => {
+function editMyProfile() {
+  router.push('/settings/profile');
+  dialogRef?.value.close();
+}
+
+async function messageUser() {
   const channel = await channelStore.getDirectChannel(user);
   if (channel.id) {
     router.push(`/channels/${channel.id}`);
@@ -51,7 +47,7 @@ const messageUser = async () => {
       'something went wrong while trying to find/create channel for this user',
     );
   }
-};
+}
 </script>
 
 <template>
@@ -62,10 +58,12 @@ const messageUser = async () => {
     >
       <SpinnerComponent />
     </div>
-    <UserPictureOnlineStatusComponent :userId="user" class="h-10 w-10" />
-    <span class="font-bold text-2xl mix-blend-difference">{{
-      data?.username
-    }}</span>
+    <div class="flex flex-row gap-4 items-center">
+      <UserPictureOnlineStatusComponent :userId="user" class="h-14 w-14" />
+      <span class="font-bold text-2xl mix-blend-difference">{{
+        data?.username
+      }}</span>
+    </div>
     <span v-if="!!error" class="pt-2 text-orange-500"
       >Profile Could not be retrieved!</span
     >
@@ -79,8 +77,8 @@ const messageUser = async () => {
     </div>
     <div class="flex gap-4 mt-4">
       <Button @click="close()">Close</Button>
-      <Button v-if="isMe" @click="editMyProfile()">Edit</Button>
       <Button v-if="!isMe" @click="messageUser()">Message</Button>
+      <Button v-if="isMe" @click="editMyProfile()">Edit</Button>
     </div>
   </div>
 </template>
