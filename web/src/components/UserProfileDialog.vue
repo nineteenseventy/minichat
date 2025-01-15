@@ -48,12 +48,6 @@ async function messageUser() {
     );
   }
 }
-
-async function logout() {
-  console.debug('logout() not implemented yet');
-  router.push('not-implemented');
-  dialogRef?.value.close();
-}
 </script>
 
 <template>
@@ -83,7 +77,6 @@ async function logout() {
       <Button @click="close()">Close</Button>
       <Button v-if="!isMe" @click="messageUser()">Message</Button>
       <Button v-if="isMe" @click="editMyProfile()">Edit</Button>
-      <Button v-if="isMe" @click="logout()" class="ml-auto">Logout</Button>
     </div>
   </div>
 </template>

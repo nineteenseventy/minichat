@@ -93,7 +93,7 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	var username string
-	var bio, picture, color sql.NullString
+	var bio, picture sql.NullString
 
 	err := conn.QueryRow(
 		request.Context(),
@@ -101,12 +101,11 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 			id,
 			username,
 			bio,
-			picture,
-			color
+			picture
 		FROM minichat.users
 		WHERE id = $1`,
 		id,
-	).Scan(&id, &username, &bio, &picture, &color)
+	).Scan(&id, &username, &bio, &picture)
 
 	if httputil.HandleError(writer, err) {
 		return
@@ -117,7 +116,6 @@ func getUserProfileHandler(writer http.ResponseWriter, request *http.Request) {
 		Username: username,
 		Picture:  serverutil.ParseUserPictureUrl(picture),
 		Bio:      httputil.ParseSqlString(bio),
-		Color:    httputil.ParseSqlString(color),
 	}
 
 	httputil.JSONResponse(writer, user)
@@ -169,6 +167,7 @@ func putProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	var newProfile minichat.UserProfile
+	var bio, picture sql.NullString
 
 	conn := database.GetDatabase()
 	err = conn.QueryRow(
@@ -177,22 +176,21 @@ func putProfileHandler(writer http.ResponseWriter, request *http.Request) {
 		UPDATE minichat.users
 		SET
 			username = $2,
-			bio = $3,
-			picture = $4,
-			color = $5
+			bio = $3
 		WHERE id = $1
-		RETURNING id, username, bio, picture, color
+		RETURNING id, username, bio, picture
 		`,
 		userId,
 		currentProfile.Username,
 		currentProfile.Bio,
-		currentProfile.Picture,
-		currentProfile.Color,
-	).Scan(&newProfile.ID, &newProfile.Username, &newProfile.Bio, &newProfile.Picture, &newProfile.Color)
+	).Scan(&newProfile.ID, &newProfile.Username, &bio, &picture)
 
 	if httputil.HandleError(writer, err) {
 		return
 	}
+
+	newProfile.Bio = httputil.ParseSqlString(bio)
+	newProfile.Picture = serverutil.ParseUserPictureUrl(picture)
 
 	httputil.JSONResponse(writer, newProfile)
 }
@@ -236,12 +234,7 @@ func postUserPictureHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	body, err := request.GetBody()
-	if httputil.HandleError(writer, err) {
-		return
-	}
-
-	minioInfo, err := minioClient.PutObject(ctx, serverutil.ProfulePictureBucket, newPictureKey, body, size, minio.PutObjectOptions{
+	minioInfo, err := minioClient.PutObject(ctx, serverutil.ProfulePictureBucket, newPictureKey, request.Body, size, minio.PutObjectOptions{
 		ContentType: ContentType,
 	})
 	if httputil.HandleError(writer, err) {
@@ -249,6 +242,7 @@ func postUserPictureHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	conn := database.GetDatabase()
+	var user minichat.User
 	var picture sql.NullString
 	err = conn.QueryRow(
 		ctx,
@@ -256,16 +250,18 @@ func postUserPictureHandler(writer http.ResponseWriter, request *http.Request) {
 		UPDATE minichat.users
 		SET picture = $2
 		WHERE id = $1
-		RETURNING picture
+		RETURNING id, username, picture
 		`,
 		userId,
 		minioInfo.Key,
-	).Scan(&picture)
+	).Scan(&user.ID, &user.Username, &picture)
 	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	httputil.JSONResponse(writer, serverutil.ParseUserPictureUrl(picture))
+	user.Picture = serverutil.ParseUserPictureUrl(picture)
+
+	httputil.JSONResponse(writer, user)
 }
 
 func echoHandler(writer http.ResponseWriter, request *http.Request) {

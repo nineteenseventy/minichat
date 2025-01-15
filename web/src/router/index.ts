@@ -27,15 +27,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/settings/profile',
+      name: 'profileSettings',
+      component: UserSettingsComponent,
+    },
+    {
       path: '/',
       name: 'home',
       component: MainView,
       children: [
-        {
-          path: '/settings/profile',
-          name: 'profileSettings',
-          component: UserSettingsComponent,
-        },
         {
           path: 'channels',
           redirect: '/',

@@ -3,7 +3,7 @@ package minichat
 type User struct {
 	ID       string  `json:"id"`
 	Username string  `json:"username"`
-	Picture  *string `json:"profilePicture"`
+	Picture  *string `json:"picture"`
 }
 
 type UserProfile struct {
@@ -11,14 +11,12 @@ type UserProfile struct {
 	Username string  `json:"username"`
 	Picture  *string `json:"picture"`
 	Bio      *string `json:"bio"`
-	Color    *string `json:"color"`
 }
 
 type PatchUserProfile struct {
 	Username *string `json:"username"`
 	Picture  *string `json:"picture"`
 	Bio      *string `json:"bio"`
-	Color    *string `json:"color"`
 }
 
 type UserStatus struct {

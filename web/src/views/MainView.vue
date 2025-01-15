@@ -31,7 +31,6 @@ const channelStore = useChannelStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
 const nestedRouteIsActive = useRouteParam('channelId');
-console.log('route param:', nestedRouteIsActive.value);
 
 const showEmptyChannelMessage = computed(() => {
   return !nestedRouteIsActive && !useRoute().path.endsWith('/settings/profile');
@@ -39,7 +38,7 @@ const showEmptyChannelMessage = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-row gap-2 p-2 h-full">
+  <div class="flex flex-row gap-2 h-full w-full">
     <nav class="w-72 flex flex-col gap-2">
       <ChannelsComponent class="h-full" />
       <Card class="user-card">

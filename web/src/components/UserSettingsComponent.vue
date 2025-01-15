@@ -1,41 +1,40 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watchEffect } from 'vue';
-import {
-  Button,
-  ColorPicker,
-  Dialog,
-  InputText,
-  Card,
-  Textarea,
-} from 'primevue';
+import { computed, ref, useTemplateRef } from 'vue';
+import { Button, Dialog, InputText, Card, Textarea } from 'primevue';
 import { Form, type FormSubmitEvent } from '@primevue/forms';
 import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import { useApi } from '@/composables/useApi';
 import type { UpdateUserProfilePayload } from '@/interfaces/userProfile.interface';
 import UserPictureComponent from './UserPictureComponent.vue';
+import { useUserStore } from '@/stores/userStore';
+import type { User } from '@/interfaces/user.interface';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 const authenticatedUser = useAuthenticatedUserStore().authenticatedUserId;
+const userStore = useUserStore();
+const auth0 = useAuth0();
 
-const user = useApi(`/users/${authenticatedUser}/profile`).json();
-const initialValues = computed(() => user.data.value);
+const userProfileResponse = useApi(
+  `/users/${authenticatedUser}/profile`,
+).json();
+const userProfile = computed(() => userProfileResponse.data.value);
 
 async function submit(event: FormSubmitEvent) {
   const payload: UpdateUserProfilePayload = {};
-  console.log(event.states);
   if (event.states.username.dirty) {
     payload.username = event.states.username.value;
   } else {
-    payload.username = initialValues.value.username;
+    payload.username = userProfile.value.username;
   }
 
   if (event.states.bio.dirty) {
     payload.bio = event.states.bio.value;
   } else {
-    payload.bio = initialValues.value.bio;
+    payload.bio = userProfile.value.bio;
   }
 
   const newUser = await useApi('/users/me/profile').put(payload).json();
-  console.log(newUser.data.value);
+  userStore.updateUser(authenticatedUser, newUser.data.value);
 }
 
 const dialogVisible = ref(false);
@@ -44,18 +43,20 @@ async function submitImage() {
   if (!fileInputElement.value || !fileInputElement.value.files) return;
   const file = fileInputElement.value.files[0];
   if (!file) return;
-  const newUser = await useApi('/users/me/picture').post(file).json();
-  if (!newUser.data) return;
-  console.log(newUser.data.value);
+  dialogVisible.value = false;
+  const newUser = await useApi('/users/me/picture').post(file).json<User>();
+  if (!newUser.data.value) return;
+  userProfile.value.picture = newUser.data.value.picture;
+  userStore.updateUser(authenticatedUser, newUser.data.value);
 }
 </script>
 
 <template>
-  <Card class="h-full">
+  <Card class="h-full w-full">
     <template #title><span class="text-xl font-bold">Settings</span></template>
     <template #content>
       <Form
-        :initialValues="initialValues"
+        :initialValues="userProfile"
         @submit="submit"
         class="grid grid-cols-[auto,2fr] gap-4 items-center"
         id="settings-form"
@@ -83,13 +84,19 @@ async function submitImage() {
     </template>
     <template #footer>
       <div class="flex w-full justify-between">
-        <Button
-          label="Change Your Password"
-          severity="info"
-          :to="'/not-implemented'"
-          :as="'router-link'"
-        />
-        <Button type="submit" form="settings-form">Save Settings</Button>
+        <div class="flex gap-2">
+          <Button
+            label="Change Your Password"
+            severity="info"
+            :to="'/not-implemented'"
+            :as="'router-link'"
+          />
+          <Button @click="auth0.logout()" severity="danger">Logout</Button>
+        </div>
+        <div class="flex gap-2">
+          <Button to="/" as="router-link">Close</Button>
+          <Button type="submit" form="settings-form">Save Settings</Button>
+        </div>
       </div>
     </template>
   </Card>

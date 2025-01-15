@@ -40,7 +40,6 @@ function deleteMessage() {
 
 const confirm = useConfirm();
 const confirmDeleteMessage = (event: Event) => {
-  console.log(event);
   // (event.target as HTMLSpanElement).focus();
   confirm.require({
     target: event.target as HTMLSpanElement,

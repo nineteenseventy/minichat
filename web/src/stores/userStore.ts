@@ -46,10 +46,27 @@ export const useUserStore = defineStore('user', () => {
     storedUser.value.referenceCounter--;
   }
 
+  async function updateUser(userId: string, user: Partial<User>) {
+    const storedUserIndex = users.value.findIndex((v) => v.id === userId);
+    if (storedUserIndex === -1) return;
+    if (!users.value[storedUserIndex].user) {
+      users.value[storedUserIndex].user = {
+        ...(user as User),
+        id: userId,
+      };
+      return;
+    }
+    users.value[storedUserIndex].user = {
+      ...users.value[storedUserIndex].user,
+      ...user,
+      id: userId,
+    };
+  }
+
   async function fetchUser(userId: string) {
     const { data } = await useApi(`/users/${userId}`).json<User>();
     return data.value ?? undefined;
   }
 
-  return { users, getUser, updateStore, unsubscribeUser };
+  return { users, getUser, updateStore, unsubscribeUser, updateUser };
 });
