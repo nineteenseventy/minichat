@@ -7,10 +7,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/minio/minio-go/v7"
 	"github.com/nineteenseventy/minichat/core/cache"
 	"github.com/nineteenseventy/minichat/core/database"
 	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/minichat"
+	coreminio "github.com/nineteenseventy/minichat/core/minio"
 	coreutil "github.com/nineteenseventy/minichat/core/util"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
@@ -150,14 +152,16 @@ func getUserStatusHandler(writer http.ResponseWriter, request *http.Request) {
 func putProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	userId := serverutil.GetUserIdFromContext(ctx)
+	id := chi.URLParam(request, "id")
 
-	var currentProfile minichat.UserProfile
-	err := httputil.JSONRequest(request, &currentProfile)
-	if httputil.HandleError(writer, err) {
+	if id != userId {
+		http.Error(writer, "You cannot change another users settings.", http.StatusForbidden)
 		return
 	}
-	if currentProfile.ID != userId {
-		http.Error(writer, "You cannot change another users settings.", http.StatusForbidden)
+
+	var currentProfile minichat.PatchUserProfile
+	err := httputil.JSONRequest(request, &currentProfile)
+	if httputil.HandleError(writer, err) {
 		return
 	}
 
@@ -188,6 +192,74 @@ func putProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	httputil.JSONResponse(writer, newProfile)
+}
+
+func postUserPictureHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	userId := serverutil.GetUserIdFromContext(ctx)
+	id := chi.URLParam(request, "id")
+
+	if id != userId {
+		http.Error(writer, "You cannot change another users settings.", http.StatusForbidden)
+		return
+	}
+
+	minioClient := coreminio.GetMinio()
+
+	newPictureKey := fmt.Sprintf("%s%s%d", userId, coreutil.NewUuid(), coreutil.GetUnixTime())
+
+	ContentType := request.Header.Get("Content-Type")
+	if ContentType == "" {
+		http.Error(writer, "Content-Type header is required", http.StatusBadRequest)
+		return
+	}
+
+	size := request.ContentLength
+	if size > 1024*1024 {
+		http.Error(writer, "File size is too large", http.StatusBadRequest)
+		return
+	}
+
+	if size <= -1 {
+		http.Error(writer, "File size is unknown, please provide Content-Length header", http.StatusBadRequest)
+		return
+	}
+
+	if size == 0 {
+		http.Error(writer, "File size is too small", http.StatusBadRequest)
+		return
+	}
+
+	body, err := request.GetBody()
+	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	minioInfo, err := minioClient.PutObject(ctx, serverutil.ProfulePictureBucket, newPictureKey, body, size, minio.PutObjectOptions{
+		ContentType: ContentType,
+	})
+	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	conn := database.GetDatabase()
+	var picture sql.NullString
+	err = conn.QueryRow(
+		ctx,
+		`
+		UPDATE minichat.users
+		SET picture = $2
+		WHERE id = $1
+		RETURNING picture
+		`,
+		userId,
+		minioInfo.Key,
+	).Scan(&picture)
+	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	httputil.JSONResponse(writer, serverutil.ParseUserPictureUrl(picture))
 }
 
 func echoHandler(writer http.ResponseWriter, request *http.Request) {
@@ -355,6 +427,7 @@ func UsersRouter(router chi.Router) {
 	router.Get("/users/{id}/status", getUserStatusHandler)
 	router.Get("/users/{id}/channel", getUserChannelHandler)
 	router.Put("/users/{id}/profile", putProfileHandler)
+	router.Post("/users/{id}/picture", postUserPictureHandler)
 	router.Post("/users/echo", echoHandler)
 	router.Post("/users/echoAndGetStatuses", echoAndGetStatusesHandler)
 
