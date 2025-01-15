@@ -58,10 +58,12 @@ async function messageUser() {
     >
       <SpinnerComponent />
     </div>
-    <UserPictureOnlineStatusComponent :userId="user" class="h-10 w-10" />
-    <span class="font-bold text-2xl mix-blend-difference">{{
-      data?.username
-    }}</span>
+    <div class="flex flex-row gap-4 items-center">
+      <UserPictureOnlineStatusComponent :userId="user" class="h-14 w-14" />
+      <span class="font-bold text-2xl mix-blend-difference">{{
+        data?.username
+      }}</span>
+    </div>
     <span v-if="!!error" class="pt-2 text-orange-500"
       >Profile Could not be retrieved!</span
     >
