@@ -16,10 +16,6 @@ const user = userStore.getUser(_userId);
 
 <template>
   <div class="flex rounded-full overflow-hidden aspect-square">
-    <img
-      :src="user?.picture ?? defaultUser"
-      alt="Profile picture"
-      class="w-12 h-auto"
-    />
+    <img :src="user?.picture ?? defaultUser" alt="Profile picture" />
   </div>
 </template>

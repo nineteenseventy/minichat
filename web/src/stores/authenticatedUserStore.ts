@@ -1,13 +1,11 @@
 import { useApi } from '@/composables/useApi';
-import type { UserProfile } from '@/interfaces/userProfile.interface';
+import type { User } from '@auth0/auth0-vue';
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 let userStoreInitialized: Promise<boolean> = new Promise((resolve) =>
   resolve(false),
 );
-
-let userProfileInit: UserProfile;
 
 export async function initializeAuthenticatedUserStore() {
   if (await userStoreInitialized) return;
@@ -17,29 +15,20 @@ export async function initializeAuthenticatedUserStore() {
     (resolve) => (_resolve = resolve.bind(null, true)),
   );
 
-  const { data } = await useApi('/users/me/profile').json<UserProfile>();
-  if (!data.value)
-    throw new Error('Could not retrieve data about the logged in user!');
-
-  data.value.picture ??= '/src/assets/images/default-user.png';
-  userProfileInit = data.value;
+  const store = useAuthenticatedUserStore();
+  const { data } = await useApi('/users/me').json<User>();
+  if (!data.value) throw new Error('could not fetch authenticated user');
+  store.authenticatedUserId = data.value.id;
 
   _resolve!();
-  console.debug(
-    'authenticated user store initialized with: ' + JSON.stringify(data.value),
-  );
+  console.info('user store initialized with: ' + JSON.stringify(data.value));
 }
 
 export const useAuthenticatedUserStore = defineStore(
   'authenticatedUser',
   () => {
-    const id = ref(userProfileInit.id);
-    const profile = ref<UserProfile>(userProfileInit);
+    const authenticatedUserId = ref<string>('undefined');
 
-    function getProfile() {
-      return computed(() => profile.value);
-    }
-
-    return { id, profile, getProfile };
+    return { authenticatedUserId };
   },
 );

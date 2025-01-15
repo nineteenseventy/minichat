@@ -28,7 +28,7 @@ onBeforeUnmount(() => {
 const userStore = useUserStore();
 const onlineStatusStore = useOnlineStatusStore();
 const channelStore = useChannelStore();
-const authenticatedUserId = useAuthenticatedUserStore().id;
+const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
 const nestedRouteIsActive = useRouteParam('channelId');
 console.log('route param:', nestedRouteIsActive.value);

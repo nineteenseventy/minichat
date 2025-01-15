@@ -3,5 +3,9 @@ export interface UserProfile {
   username: string;
   bio?: string;
   picture?: string;
-  color?: string;
+}
+
+export interface UpdateUserProfilePayload {
+  username?: string;
+  bio?: string;
 }

@@ -153,6 +153,9 @@ func putProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	userId := serverutil.GetUserIdFromContext(ctx)
 	id := chi.URLParam(request, "id")
+	if id == "me" {
+		id = serverutil.GetUserIdFromContext(request.Context())
+	}
 
 	if id != userId {
 		http.Error(writer, "You cannot change another users settings.", http.StatusForbidden)
@@ -198,6 +201,9 @@ func postUserPictureHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	userId := serverutil.GetUserIdFromContext(ctx)
 	id := chi.URLParam(request, "id")
+	if id == "me" {
+		id = serverutil.GetUserIdFromContext(request.Context())
+	}
 
 	if id != userId {
 		http.Error(writer, "You cannot change another users settings.", http.StatusForbidden)

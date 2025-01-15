@@ -25,7 +25,7 @@ const timestamp = computed(() => {
   return useRelativeFormattedDate(date);
 });
 
-const authenticatedUserId = useAuthenticatedUserStore().id;
+const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 
 const isMyMessage = computed(() => {
   return message.value?.authorId === authenticatedUserId;

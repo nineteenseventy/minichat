@@ -1,208 +1,96 @@
 <script setup lang="ts">
-import { reactive, computed } from 'vue';
+import { computed, ref, useTemplateRef, watchEffect } from 'vue';
 import {
   Button,
   ColorPicker,
-  FileUpload,
+  Dialog,
   InputText,
-  Panel,
+  Card,
   Textarea,
-  useConfirm,
 } from 'primevue';
-import InputMask from 'primevue/inputmask';
+import { Form, type FormSubmitEvent } from '@primevue/forms';
 import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
-import { splitAndCapitalizeCamelCase } from '@/utils/strings/splitAndCapitalizeCamelCase';
+import { useApi } from '@/composables/useApi';
+import type { UpdateUserProfilePayload } from '@/interfaces/userProfile.interface';
+import UserPictureComponent from './UserPictureComponent.vue';
 
-interface UserSettingsPictureField {
-  picture?: string;
-}
-interface UserSettingsField {
-  type: 'InputText' | 'TextArea' | 'FileUpload' | 'ColorPicker';
-  vModel?: string;
-  placeholder?: string | undefined;
-}
+const authenticatedUser = useAuthenticatedUserStore().authenticatedUserId;
 
-type UserSettings = Record<
-  string,
-  UserSettingsField & UserSettingsPictureField
->;
+const user = useApi(`/users/${authenticatedUser}/profile`).json();
+const initialValues = computed(() => user.data.value);
 
-const user = useAuthenticatedUserStore().getProfile();
-
-const fields = reactive<UserSettings>({
-  userName: {
-    type: 'InputText',
-    vModel: '',
-    placeholder: computed(() => user.value.username).value,
-  },
-  bio: {
-    type: 'TextArea',
-    vModel: '',
-    placeholder: computed(() => user.value.bio).value,
-  },
-  profilePicture: {
-    type: 'FileUpload',
-    picture: user.value.picture,
-  },
-  color: {
-    type: 'ColorPicker',
-    vModel: user.value.color,
-  },
-});
-
-function handleKeydown(event: KeyboardEvent) {
-  const regex = /^[a-fA-F0-9]$/;
-  const allowedKeys = [
-    'ArrowLeft',
-    'ArrowRight',
-    'ArrowUp',
-    'ArrowDown',
-    'End',
-    'Home',
-    'Backspace',
-    'Delete',
-    'Tab',
-    'Control',
-    'Shift',
-    'Alt',
-    'Meta',
-  ];
-  console.log(event.key);
-  if (
-    !regex.test(event.key) &&
-    !(event.ctrlKey || event.metaKey) &&
-    !allowedKeys.includes(event.key)
-  ) {
-    event.preventDefault();
+async function submit(event: FormSubmitEvent) {
+  const payload: UpdateUserProfilePayload = {};
+  console.log(event.states);
+  if (event.states.username.dirty) {
+    payload.username = event.states.username.value;
+  } else {
+    payload.username = initialValues.value.username;
   }
+
+  if (event.states.bio.dirty) {
+    payload.bio = event.states.bio.value;
+  } else {
+    payload.bio = initialValues.value.bio;
+  }
+
+  const newUser = await useApi('/users/me/profile').put(payload).json();
+  console.log(newUser.data.value);
 }
 
-const confirm = useConfirm();
-function confirmSaveSettings(event: Event) {
-  console.log(event.target);
-  confirm.require({
-    target: event.target as HTMLButtonElement,
-    message: 'Do you want to save your settings?',
-    header: 'Confirmation',
-    icon: 'pi pi-info-circle',
-    rejectProps: {
-      label: 'Cancel',
-      severity: 'secondary',
-      outlined: true,
-    },
-    acceptProps: {
-      label: 'Save',
-      severity: 'primary',
-    },
-    accept: () => {
-      console.log('accepted');
-    },
-    reject: () => {
-      console.log('rejected');
-    },
-  });
+const dialogVisible = ref(false);
+const fileInputElement = useTemplateRef('fileInputElement');
+async function submitImage() {
+  if (!fileInputElement.value || !fileInputElement.value.files) return;
+  const file = fileInputElement.value.files[0];
+  if (!file) return;
+  const newUser = await useApi('/users/me/picture').post(file).json();
+  if (!newUser.data) return;
+  console.log(newUser.data.value);
 }
 </script>
 
 <template>
-  <Panel style="null">
-    <template #header><span class="text-xl font-bold">Settings</span></template>
-    <form id="settings-form">
-      <template v-for="(item, key) in fields" :key="key">
-        <label :for="key">{{ splitAndCapitalizeCamelCase(key) }}:</label>
-        <InputText
-          v-if="item.type === 'InputText'"
-          v-model.trim="item.vModel"
-          :placeholder="item.placeholder"
+  <Card class="h-full">
+    <template #title><span class="text-xl font-bold">Settings</span></template>
+    <template #content>
+      <Form
+        :initialValues="initialValues"
+        @submit="submit"
+        class="grid grid-cols-[auto,2fr] gap-4 items-center"
+        id="settings-form"
+      >
+        <label for="picture">Profile Picture:</label>
+        <UserPictureComponent
+          :userId="authenticatedUser"
+          @click="dialogVisible = true"
+          class="h-20 w-20"
         />
+        <label for="username">Username:</label>
+        <InputText name="username" placeholder="Username" />
+        <label for="bio">Bio:</label>
         <Textarea
-          v-else-if="item.type === 'TextArea'"
-          v-model.trim="item.vModel"
-          :placeholder="item.placeholder"
+          name="bio"
+          placeholder="Bio"
           rows="5"
           class="min-h-11 max-h-36"
         />
-        <template v-else-if="item.type === 'FileUpload'">
-          <FileUpload
-            mode="advanced"
-            accept="image/*"
-            :showUploadButton="false"
-            :maxFileSize="4000000"
-          >
-            <template #empty>
-              <img :src="item.picture" class="file-upload-picture" />
-              <span>Drag and drop your new image here (<i>max. 4MB</i>).</span>
-            </template>
-          </FileUpload>
-        </template>
-        <div v-else-if="item.type === 'ColorPicker'" class="color-picker">
-          <ColorPicker
-            v-model="item.vModel"
-            :inputId="key"
-            format="hex"
-            inline
-          />
-          <InputMask
-            v-model="item.vModel"
-            placeholder="#FF0000"
-            mask="#******"
-            @keydown="handleKeydown($event as KeyboardEvent)"
-            ref="mask"
-          />
-        </div>
-      </template>
-      <Button
-        label="Change Your Password"
-        severity="info"
-        :to="'/not-implemented'"
-        :as="'router-link'"
-      />
-    </form>
-    <template #footer>
-      <Button
-        @click.prevent="confirmSaveSettings"
-        type="submit"
-        form="settings-form"
-        >Save Settings</Button
-      >
+      </Form>
+      <Dialog header="Upload a new file" v-model:visible="dialogVisible" modal>
+        <input ref="fileInputElement" type="file" accept="image/*" />
+        <Button @click="submitImage">Submit</Button>
+      </Dialog>
     </template>
-  </Panel>
+    <template #footer>
+      <div class="flex w-full justify-between">
+        <Button
+          label="Change Your Password"
+          severity="info"
+          :to="'/not-implemented'"
+          :as="'router-link'"
+        />
+        <Button type="submit" form="settings-form">Save Settings</Button>
+      </div>
+    </template>
+  </Card>
 </template>
-
-<style scoped lang="scss">
-.p-panel {
-  height: 100%;
-  align-content: normal !important;
-}
-#settings-form {
-  display: grid;
-  grid-template-columns: auto 2fr;
-  gap: 1rem;
-  label {
-    grid-column-start: 1;
-    grid-column-end: 1;
-    padding-right: 1rem;
-    display: flex;
-    align-items: center;
-  }
-  .file-upload-picture {
-    display: inline;
-    margin-right: 1rem;
-    width: 4rem;
-  }
-  .color-picker {
-    display: flex;
-    flex-direction: column;
-    Button {
-      margin-top: auto;
-      margin-bottom: auto;
-      display: inline;
-    }
-  }
-}
-:deep(.p-panel-footer) {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-</style>
