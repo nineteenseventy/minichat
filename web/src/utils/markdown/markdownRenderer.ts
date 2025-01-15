@@ -17,7 +17,7 @@ const md = markdownit({
 
 function sanitizeContent(content: string): string {
   return content
-    .replace(/(?:[^\\]|^)((?:\\{2})*)&nbsp;/g, '$1\\&')
+    .replace(/(?:[^\\]|^)((?:\\{2})*)&/g, '$1\\&')
     .replace(/\n(?=\n)/g, '\n&nbsp;');
 }
 

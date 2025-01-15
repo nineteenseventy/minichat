@@ -3,7 +3,6 @@ import { computed, watch } from 'vue';
 import MessageComponent from '@/components/MessageComponent.vue';
 import { useMessageStore } from '@/stores/messageStore';
 import { useChannelStore } from '@/stores/channelStore';
-import Card from 'primevue/card';
 
 const messageStore = useMessageStore();
 const channelStore = useChannelStore();
@@ -48,13 +47,18 @@ function onScroll(event: Event) {
       :messageId="messageId"
       class="px-2 py-2"
     />
-    <Card v-if="!messageIds.length" class="justify-self-center m-auto">
+
+    <div v-if="!messageIds.length" class="md:justify-self-center md:m-auto">
+      <p class="text-muted-color md:text-center">
+        This channel does not contain any messages yet.
+        <br class="hidden md:block" />
+        Be the first one to say hi!
+      </p>
+    </div>
+
+    <!-- <Card v-if="!messageIds.length" class="justify-self-center m-auto">
       <template #content>
-        <p class="text-center">
-          This channel does not contain any messages yet.<br />
-          Be the first one to say hi!
-        </p>
       </template>
-    </Card>
+    </Card> -->
   </div>
 </template>
