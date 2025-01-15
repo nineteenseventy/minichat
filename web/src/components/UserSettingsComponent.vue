@@ -107,12 +107,12 @@ async function submitImage() {
     <template #footer>
       <div class="flex w-full justify-between">
         <div class="flex gap-2">
-          <Button
+          <!-- <Button
             label="Change Your Password"
             severity="info"
             :to="'/not-implemented'"
             :as="'router-link'"
-          />
+          /> -->
           <Button @click="auth0.logout()" severity="danger">Logout</Button>
         </div>
         <div class="flex gap-2">
