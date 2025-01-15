@@ -5,7 +5,7 @@ import { globalAuth0 } from '@/plugins/auth0';
 import CallbackErrorView from '@/views/CallbackErrorView.vue';
 import MainView from '@/views/MainView.vue';
 import ChannelView from '@/views/ChannelView.vue';
-import UserSettingsComponent from '@/components/UserSettingsComponent.vue';
+import UserSettingsComponent from '@/views/UserSettingsView.vue';
 import { globalEnv } from '@/plugins/assetEnvPlugin';
 import NoChannelView from '@/views/NoChannelView.vue';
 

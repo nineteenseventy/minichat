@@ -5,7 +5,7 @@ import { Form, type FormSubmitEvent } from '@primevue/forms';
 import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import { useApi } from '@/composables/useApi';
 import type { UpdateUserProfilePayload } from '@/interfaces/userProfile.interface';
-import UserPictureComponent from './UserPictureComponent.vue';
+import UserPictureComponent from '../components/UserPictureComponent.vue';
 import { useUserStore } from '@/stores/userStore';
 import type { User } from '@/interfaces/user.interface';
 import { useAuth0 } from '@auth0/auth0-vue';
