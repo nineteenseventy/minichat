@@ -39,6 +39,13 @@ async function submit(event: FormSubmitEvent) {
 
 const dialogVisible = ref(false);
 const fileInputElement = useTemplateRef('fileInputElement');
+const newImageSrc = ref('');
+function onFileChange() {
+  if (!fileInputElement.value || !fileInputElement.value.files) return;
+  const file = fileInputElement.value.files[0];
+  if (!file) return;
+  newImageSrc.value = URL.createObjectURL(file);
+}
 async function submitImage() {
   if (!fileInputElement.value || !fileInputElement.value.files) return;
   const file = fileInputElement.value.files[0];
@@ -78,8 +85,23 @@ async function submitImage() {
         />
       </Form>
       <Dialog header="Upload a new file" v-model:visible="dialogVisible" modal>
-        <input ref="fileInputElement" type="file" accept="image/*" />
-        <Button @click="submitImage">Submit</Button>
+        <div class="flex flex-row items-center gap-4">
+          <img
+            :src="newImageSrc"
+            :class="{ invisible: newImageSrc === '' }"
+            class="w-24 h-24 rounded-full"
+          />
+          <input
+            ref="fileInputElement"
+            @change="onFileChange"
+            type="file"
+            accept="image/*"
+            class="w-full"
+          />
+        </div>
+        <template #footer>
+          <Button @click="submitImage">Submit</Button>
+        </template>
       </Dialog>
     </template>
     <template #footer>
