@@ -14,6 +14,13 @@ type UserProfile struct {
 	Color    *string `json:"color"`
 }
 
+type PatchUserProfile struct {
+	Username *string `json:"username"`
+	Picture  *string `json:"picture"`
+	Bio      *string `json:"bio"`
+	Color    *string `json:"color"`
+}
+
 type UserStatus struct {
 	ID     string `json:"id"`
 	Status string `json:"status"`

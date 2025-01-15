@@ -147,8 +147,47 @@ func getUserStatusHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func userSettingsHandler(writer http.ResponseWriter, request *http.Request) {
+func patchSettingsHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	userId := serverutil.GetUserIdFromContext(ctx)
 
+	var currentProfile minichat.UserProfile
+	err := httputil.JSONRequest(request, &currentProfile)
+	if httputil.HandleError(writer, err) {
+		return
+	}
+	if currentProfile.ID != userId {
+		http.Error(writer, "You cannot change another users settings.", http.StatusForbidden)
+		return
+	}
+
+	var newProfile minichat.UserProfile
+
+	conn := database.GetDatabase()
+	err = conn.QueryRow(
+		ctx,
+		`
+		UPDATE minichat.users
+		SET
+			username = $2,
+			bio = $3,
+			picture = $4,
+			color = $5
+		WHERE id = $1
+		RETURNING username, bio, picture, color
+		`,
+		userId,
+		currentProfile.Username,
+		currentProfile.Bio,
+		currentProfile.Picture,
+		currentProfile.Color,
+	).Scan(&newProfile.Username, &newProfile.Bio, &newProfile.Picture, &newProfile.Color)
+
+	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	httputil.JSONResponse(writer, newProfile)
 }
 
 func echoHandler(writer http.ResponseWriter, request *http.Request) {
@@ -315,7 +354,7 @@ func UsersRouter(router chi.Router) {
 	router.Get("/users/{id}/profile", getUserProfileHandler)
 	router.Get("/users/{id}/status", getUserStatusHandler)
 	router.Get("/users/{id}/channel", getUserChannelHandler)
-	router.Post("/users/{id}/settings", userSettingsHandler)
+	router.Patch("/users/{id}/settings", patchSettingsHandler)
 	router.Post("/users/echo", echoHandler)
 	router.Post("/users/echoAndGetStatuses", echoAndGetStatusesHandler)
 
