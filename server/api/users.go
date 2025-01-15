@@ -147,7 +147,7 @@ func getUserStatusHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func patchSettingsHandler(writer http.ResponseWriter, request *http.Request) {
+func putProfileHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	userId := serverutil.GetUserIdFromContext(ctx)
 
@@ -174,14 +174,14 @@ func patchSettingsHandler(writer http.ResponseWriter, request *http.Request) {
 			picture = $4,
 			color = $5
 		WHERE id = $1
-		RETURNING username, bio, picture, color
+		RETURNING id, username, bio, picture, color
 		`,
 		userId,
 		currentProfile.Username,
 		currentProfile.Bio,
 		currentProfile.Picture,
 		currentProfile.Color,
-	).Scan(&newProfile.Username, &newProfile.Bio, &newProfile.Picture, &newProfile.Color)
+	).Scan(&newProfile.ID, &newProfile.Username, &newProfile.Bio, &newProfile.Picture, &newProfile.Color)
 
 	if httputil.HandleError(writer, err) {
 		return
@@ -354,7 +354,7 @@ func UsersRouter(router chi.Router) {
 	router.Get("/users/{id}/profile", getUserProfileHandler)
 	router.Get("/users/{id}/status", getUserStatusHandler)
 	router.Get("/users/{id}/channel", getUserChannelHandler)
-	router.Patch("/users/{id}/settings", patchSettingsHandler)
+	router.Put("/users/{id}/profile", putProfileHandler)
 	router.Post("/users/echo", echoHandler)
 	router.Post("/users/echoAndGetStatuses", echoAndGetStatusesHandler)
 
