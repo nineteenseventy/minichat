@@ -21,7 +21,7 @@ function sanitizeContent(content: string): string {
     .replace(/\n(?=\n)/g, '\n&nbsp;');
 }
 
-export const markdownRender = () => (v: string) => {
+export const renderMessage = () => (v: string) => {
   const sanitized = sanitizeContent(v);
   const rendered = md.render(sanitized);
   return rendered;

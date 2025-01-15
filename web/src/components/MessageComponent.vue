@@ -7,14 +7,14 @@ import { parseDate } from '@/utils/date/parseDate';
 import { useMessageStore } from '@/stores/messageStore';
 import ChatInputComponent from './ChatInputComponent.vue';
 import type { NewMessage } from '@/interfaces/message.interface';
-import { markdownRender } from '@/utils/markdown/markdownRenderer';
+import { renderMessage } from '@/utils/markdown/markdownRenderer';
 import { useConfirm } from 'primevue/useconfirm';
 
 const props = defineProps<{
   messageId: string;
 }>();
 
-const mdRender = markdownRender();
+const mdRender = renderMessage();
 
 const messageStore = useMessageStore();
 const message = messageStore.getMessage(computed(() => props.messageId));
