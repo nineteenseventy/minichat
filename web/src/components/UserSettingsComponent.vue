@@ -94,7 +94,7 @@ async function submitImage() {
           <Button @click="auth0.logout()" severity="danger">Logout</Button>
         </div>
         <div class="flex gap-2">
-          <Button to="/" as="router-link">Close</Button>
+          <Button to="/" as="router-link" severity="secondary">Close</Button>
           <Button type="submit" form="settings-form">Save Settings</Button>
         </div>
       </div>

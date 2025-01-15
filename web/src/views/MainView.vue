@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Card from 'primevue/card';
-import { onBeforeMount, onBeforeUnmount, computed } from 'vue';
+import { onBeforeMount, onBeforeUnmount } from 'vue';
 import UserComponent from '@/components/UserComponent.vue';
 import { useUserStore } from '@/stores/userStore';
 import { useTimeoutPoll } from '@vueuse/core';
@@ -8,8 +8,6 @@ import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import ChannelsComponent from '@/components/ChannelsComponent.vue';
 import { useOnlineStatusStore } from '@/stores/onlineStatusStore';
 import { useChannelStore } from '@/stores/channelStore';
-import { useRouteParam } from '@/composables/useRouteParam';
-import { useRoute } from 'vue-router';
 
 const pollIntervals = [
   useTimeoutPoll(async () => await userStore.updateStore(), 60000),
@@ -29,12 +27,6 @@ const userStore = useUserStore();
 const onlineStatusStore = useOnlineStatusStore();
 const channelStore = useChannelStore();
 const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
-
-const nestedRouteIsActive = useRouteParam('channelId');
-
-const showEmptyChannelMessage = computed(() => {
-  return !nestedRouteIsActive && !useRoute().path.endsWith('/settings/profile');
-});
 </script>
 
 <template>
@@ -48,13 +40,6 @@ const showEmptyChannelMessage = computed(() => {
       </Card>
     </nav>
     <main class="flex-1">
-      <div v-if="showEmptyChannelMessage" class="flex h-full">
-        <Card class="justify-self-center m-auto">
-          <template #content>
-            <p class="text-center">Select a channel to display its messages.</p>
-          </template>
-        </Card>
-      </div>
       <RouterView style="align-content: center" />
     </main>
   </div>
