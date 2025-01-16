@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import Button from 'primevue/button';
-import Textarea from 'primevue/textarea';
+import { Button, Textarea } from 'primevue';
 
 defineProps<{
   enableCancel?: boolean;
+  enableFile?: boolean;
 }>();
 
 const model = defineModel<string>();
@@ -11,6 +11,7 @@ const model = defineModel<string>();
 const emit = defineEmits<{
   onSave: [];
   onCancel: [];
+  onFile: [];
 }>();
 
 async function onKeydown(event: KeyboardEvent) {
@@ -37,6 +38,13 @@ async function onKeydown(event: KeyboardEvent) {
       class="self-end min-h-11 min-w-11"
       severity="danger"
       @click="emit('onCancel')"
+    />
+    <Button
+      v-if="enableFile"
+      icon="pi pi-paperclip"
+      class="min-h-11 min-w-11"
+      severity="help"
+      @click="emit('onFile')"
     />
     <Button
       icon="pi pi-send"

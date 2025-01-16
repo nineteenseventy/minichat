@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/minio/minio-go/v7"
 	"github.com/nineteenseventy/minichat/core/database"
 	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/minichat"
+	coreminio "github.com/nineteenseventy/minichat/core/minio"
 	coreutil "github.com/nineteenseventy/minichat/core/util"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
@@ -45,13 +48,13 @@ func parseMessages(rows pgx.Rows, buffer *[]minichat.Message) error {
 		}
 
 		if attachmentId.Valid && attachmentFilename.Valid && attachmentType.Valid {
-			attachmentUrl, err := serverutil.ParseAttachmentUrl(attachmentId.String, attachmentFilename.String)
+			attachmentUrl, err := serverutil.ParseAttachmentUrl(message.Id, message.ChannelId, attachmentId.String, attachmentFilename.String)
 			if err == nil {
 				var attachment minichat.MessageAttachment
 				attachment.Id = attachmentId.String
 				attachment.MessageId = message.Id
 				attachment.Type = attachmentType.String
-				attachment.Url = attachmentUrl
+				attachment.Url = &attachmentUrl
 				attachment.Filename = attachmentFilename.String
 				message.Attachments = append(message.Attachments, attachment)
 			}
@@ -224,13 +227,13 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	channelId := chi.URLParam(request, "channelId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
-	var basemessage minichat.MessageBase
-	err := httputil.JSONRequest(request, &basemessage)
+	var newMessage minichat.MessageBase
+	err := httputil.JSONRequest(request, &newMessage)
 	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	if basemessage.Content == "" {
+	if newMessage.Content == "" {
 		http.Error(writer, "content is required", http.StatusBadRequest)
 		return
 	}
@@ -248,10 +251,59 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	`,
 		channelId,
 		userId,
-		basemessage.Content,
+		newMessage.Content,
 	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &timestamp, &message.Read)
 	message.Timestamp = coreutil.FormatTimestampz(timestamp)
 	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	var errors []error
+	// insert attachments
+	for _, attachment := range newMessage.Attachments {
+		attachmentId := coreutil.NewUuid()
+
+		_, err = conn.Exec(
+			ctx,
+			`
+			INSERT INTO minichat.attachments (id, message_id, "type", filename, url)
+			VALUES ($1, $2, $3, $4, $5)
+			RETURNING id, message_id, "type", filename, url
+		`,
+			attachmentId,
+			message.Id,
+			attachment.Type,
+			attachment.Filename,
+			serverutil.ParseAttachmentKey(message.Id, channelId, attachmentId, attachment.Filename),
+		)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+
+		attachmentUrl, err := serverutil.ParseAttachmentUrl(message.Id, channelId, attachmentId, attachment.Filename)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+
+		messageAttachment := minichat.MessageAttachment{
+			Id:        attachmentId,
+			MessageId: message.Id,
+			Type:      attachment.Type,
+			Filename:  attachment.Filename,
+			Url:       &attachmentUrl,
+		}
+		message.Attachments = append(message.Attachments, messageAttachment)
+	}
+
+	if len(errors) > 0 {
+		var errMessages []string
+		for _, err := range errors {
+			errMessages = append(errMessages, fmt.Sprintf("'%s'", err.Error()))
+		}
+		errorsString := strings.Join(errMessages, ", ")
+		http.Error(writer, fmt.Sprintf("failed to insert attachments: %s", errorsString), http.StatusInternalServerError)
 		return
 	}
 
@@ -272,18 +324,88 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	httputil.JSONResponse(writer, message)
 }
 
+func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	attachmentId := chi.URLParam(request, "attachmentId")
+	userId := serverutil.GetUserIdFromContext(ctx)
+
+	conn := database.GetDatabase()
+	fmt.Println("1 attachmentId", attachmentId)
+
+	// Get the attachment
+	var attachmentKey, authorId string
+	err := conn.QueryRow(
+		ctx,
+		`
+		SELECT "attachment".url, "message".author_id
+		FROM minichat.attachments AS "attachment"
+		LEFT JOIN minichat.messages AS "message"
+		ON "message".id = "attachment".message_id
+		WHERE "attachment".id = $1
+		`,
+		attachmentId,
+	).Scan(&attachmentKey, &authorId)
+	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	if authorId != userId {
+		http.Error(writer, "attachments may only be uploaded by their author", http.StatusUnauthorized)
+		return
+	}
+	fmt.Println("2 attachmentId", attachmentId)
+
+	minioClient := coreminio.GetMinio()
+
+	// Post the attachment to Minio
+	ContentType := request.Header.Get("Content-Type")
+	if ContentType == "" {
+		http.Error(writer, "Content-Type header is required", http.StatusBadRequest)
+		return
+	}
+
+	size := request.ContentLength
+	if size > 1024*1024 {
+		http.Error(writer, "File size is too large", http.StatusBadRequest)
+		return
+	}
+
+	if size <= -1 {
+		http.Error(writer, "File size is unknown, please provide Content-Length header", http.StatusBadRequest)
+		return
+	}
+
+	if size == 0 {
+		http.Error(writer, "File size is too small", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("1 attachmentKey", attachmentKey)
+
+	_, err = minioClient.PutObject(ctx, serverutil.AttachmentBucket, attachmentKey, request.Body, size, minio.PutObjectOptions{
+		ContentType: ContentType,
+	})
+	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	fmt.Println("2 attachmentKey", attachmentKey)
+
+	writer.WriteHeader(http.StatusCreated)
+}
+
 func patchMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	messageId := chi.URLParam(request, "messageId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
-	var basemessage minichat.MessageBase
-	err := httputil.JSONRequest(request, &basemessage)
+	var newMessage minichat.MessageBase
+	err := httputil.JSONRequest(request, &newMessage)
 	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	if basemessage.Content == "" {
+	if newMessage.Content == "" {
 		http.Error(writer, "content is required", http.StatusBadRequest)
 		return
 	}
@@ -311,14 +433,14 @@ func patchMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	_, err = conn.Exec(
 		ctx,
 		"UPDATE minichat.messages SET content = $1 WHERE id = $2",
-		basemessage.Content,
+		newMessage.Content,
 		messageId,
 	)
 	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	message.Content = basemessage.Content
+	message.Content = newMessage.Content
 
 	httputil.JSONResponse(writer, message)
 }
@@ -363,6 +485,7 @@ func deleteMessageHandler(writer http.ResponseWriter, request *http.Request) {
 func MessagesRouter(router chi.Router) {
 	router.Get("/messages/{channelId}", getMessagesHandler)
 	router.Post("/messages/{channelId}", postMessageHandler)
+	router.Post("/attachment/{attachmentId}", postAttachmentHandler)
 	router.Patch("/messages/{messageId}", patchMessageHandler)
 	router.Delete("/messages/{messageId}", deleteMessageHandler)
 }

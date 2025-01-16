@@ -210,7 +210,7 @@ func postUserPictureHandler(writer http.ResponseWriter, request *http.Request) {
 
 	minioClient := coreminio.GetMinio()
 
-	newPictureKey := fmt.Sprintf("%s%s%d", userId, coreutil.NewUuid(), coreutil.GetUnixTime())
+	newPictureKey := fmt.Sprintf("%s/%s/%d", userId, coreutil.NewUuid(), coreutil.GetUnixTime())
 
 	ContentType := request.Header.Get("Content-Type")
 	if ContentType == "" {
@@ -234,7 +234,7 @@ func postUserPictureHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	minioInfo, err := minioClient.PutObject(ctx, serverutil.ProfulePictureBucket, newPictureKey, request.Body, size, minio.PutObjectOptions{
+	minioInfo, err := minioClient.PutObject(ctx, serverutil.ProfilePictureBucket, newPictureKey, request.Body, size, minio.PutObjectOptions{
 		ContentType: ContentType,
 	})
 	if httputil.HandleError(writer, err) {
@@ -332,8 +332,8 @@ func getUserChannelHandler(writer http.ResponseWriter, request *http.Request) {
 		FROM minichat.channels AS "channel"
 		
 		-- member me
-			LEFT JOIN minichat.channels_members AS "me_member"
-			ON "channel".id = "me_member".channel_id
+		LEFT JOIN minichat.channels_members AS "me_member"
+		ON "channel".id = "me_member".channel_id
 
 		-- direct_partner
 		LEFT JOIN minichat.channels_members AS "direct_partner_member"

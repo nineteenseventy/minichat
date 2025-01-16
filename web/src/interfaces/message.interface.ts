@@ -20,6 +20,13 @@ export interface Message {
 
 export interface NewMessage {
   content: string;
+  attachments: NewMessageAttachment[];
+}
+
+export interface UpdateMessage {
+  content: string;
+  deleteAttachments?: string[];
+  attachments?: NewMessageAttachment[];
 }
 
 export interface NewMessageAttachment {

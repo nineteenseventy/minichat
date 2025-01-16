@@ -94,6 +94,12 @@ func serve(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", objectInfo.ContentType)
 	writer.Header().Set("Last-Modified", objectInfo.LastModified.Format(http.TimeFormat))
 
+	// Handle HEAD requests
+	if request.Method == http.MethodHead {
+		writer.Header().Set("Content-Length", fmt.Sprintf("%d", objectInfo.Size))
+		return
+	}
+
 	written, err := io.Copy(writer, objectReader)
 	if err != nil {
 		http.Error(writer, "Error reading object", http.StatusInternalServerError)
@@ -120,6 +126,7 @@ func main() {
 	router.Use(middleware.CorsMiddlewareFactory())
 	router.Mount("/", HealthRouter())
 	router.Get("/{bucket}/*", serve)
+	router.Head("/{bucket}/*", serve)
 
 	host := httputil.ParseHost(args.Host, args.Port)
 	logger.Info().Str("host", host).Msg("Starting server")
