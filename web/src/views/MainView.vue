@@ -9,6 +9,11 @@ import ChannelsComponent from '@/components/ChannelsComponent.vue';
 import { useOnlineStatusStore } from '@/stores/onlineStatusStore';
 import { useChannelStore } from '@/stores/channelStore';
 
+const userStore = useUserStore();
+const onlineStatusStore = useOnlineStatusStore();
+const channelStore = useChannelStore();
+const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
+
 const pollIntervals = [
   useTimeoutPoll(async () => await userStore.updateStore(), 60000),
   useTimeoutPoll(async () => await onlineStatusStore.updateStore(), 10000),
@@ -22,11 +27,6 @@ onBeforeMount(() => {
 onBeforeUnmount(() => {
   pollIntervals.forEach((pollInterval) => pollInterval.pause());
 });
-
-const userStore = useUserStore();
-const onlineStatusStore = useOnlineStatusStore();
-const channelStore = useChannelStore();
-const authenticatedUserId = useAuthenticatedUserStore().authenticatedUserId;
 </script>
 
 <template>

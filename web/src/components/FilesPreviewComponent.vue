@@ -3,7 +3,11 @@ import FilePreviewComponent, {
   type FilePreview,
 } from './FilePreviewComponent.vue';
 
-defineProps<{ files: FilePreview[] }>();
+defineProps<{
+  files: FilePreview[];
+  enableDownload?: boolean;
+  enableLargePreview?: boolean;
+}>();
 const emit = defineEmits<{ remove: [FilePreview] }>();
 </script>
 
@@ -12,6 +16,8 @@ const emit = defineEmits<{ remove: [FilePreview] }>();
     <FilePreviewComponent
       v-for="(file, i) in files"
       v-bind="file"
+      :enableDownload="enableDownload"
+      :enableLargePreview="enableLargePreview"
       :key="i"
       @remove="emit('remove', file)"
     />

@@ -6,9 +6,14 @@ import { useAuthenticatedUserStore } from '@/stores/authenticatedUserStore';
 import { parseDate } from '@/utils/date/parseDate';
 import { useMessageStore } from '@/stores/messageStore';
 import ChatInputComponent from './ChatInputComponent.vue';
-import type { NewMessage } from '@/interfaces/message.interface';
+import type {
+  MessageAttachment,
+  UpdateMessage,
+} from '@/interfaces/message.interface';
 import { useMessageRenderer } from '@/composables/useMessageRenderer';
 import { useConfirm } from 'primevue/useconfirm';
+import FilesPreviewComponent from './FilesPreviewComponent.vue';
+import type { FilePreview } from './FilePreviewComponent.vue';
 
 const props = defineProps<{
   messageId: string;
@@ -69,13 +74,24 @@ watch(
 
 async function onAfterEdit() {
   if (!message.value?.id) return;
-  const updatedMessage: NewMessage = {
+  const updatedMessage: UpdateMessage = {
     content: content.value,
   };
 
   await messageStore.updateMessage(message.value.id, updatedMessage);
 
   mode.value = 'view';
+}
+
+const filePreviews = computed(
+  () => message.value?.attachments.map(mapFileAttachment) ?? [],
+);
+function mapFileAttachment(attachment: MessageAttachment): FilePreview {
+  return {
+    name: attachment.filename,
+    type: attachment.type,
+    url: attachment.url ?? '',
+  };
 }
 </script>
 
@@ -111,6 +127,12 @@ async function onAfterEdit() {
       :enable-cancel="true"
       @onSave="onAfterEdit()"
       @onCancel="mode = 'view'"
+    />
+    <FilesPreviewComponent
+      v-if="message"
+      :files="filePreviews"
+      enableDownload
+      enableLargePreview
     />
     <span class="text-xs/3" :v-tooltip="'a'">
       {{ timestamp }}

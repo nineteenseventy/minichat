@@ -23,6 +23,12 @@ export interface NewMessage {
   attachments: NewMessageAttachment[];
 }
 
+export interface UpdateMessage {
+  content: string;
+  deleteAttachments?: string[];
+  attachments?: NewMessageAttachment[];
+}
+
 export interface NewMessageAttachment {
   type: string;
   filename: string;

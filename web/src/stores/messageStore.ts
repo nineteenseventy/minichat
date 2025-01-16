@@ -3,6 +3,7 @@ import type {
   GetMessagesQuery,
   Message,
   NewMessage,
+  UpdateMessage,
 } from '@/interfaces/message.interface';
 import { computed, ref, type Ref } from 'vue';
 import { useApi } from '@/composables/useApi';
@@ -96,7 +97,7 @@ export const useMessageStore = defineStore('message', () => {
     return data.value;
   }
 
-  async function updateMessage(messageId: string, newMessage: NewMessage) {
+  async function updateMessage(messageId: string, newMessage: UpdateMessage) {
     const request = useApi(`/messages/${messageId}`).patch(newMessage);
     const { data } = await request.json<Message>();
     if (!data.value) return;
