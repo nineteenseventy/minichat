@@ -8,12 +8,16 @@ import (
 
 const AttachmentBucket = "attachment"
 
-func ParseAttachmentUrl(attachmentId string, filename string) (*string, error) {
+func ParseAttachmentKey(messageId string, channelId string, attachmentId string, filename string) string {
+	return fmt.Sprintf("%s/%s/%s/%s", channelId, messageId, attachmentId, filename)
+}
+
+func ParseAttachmentUrl(messageId string, channelId string, attachmentId string, filename string) (string, error) {
 	logger := logging.GetLogger("server.api.users.parsePictureUrl")
-	attachmentUrl, err := GetCdnUrl(AttachmentBucket, fmt.Sprintf("%s/%s", attachmentId, filename))
+	attachmentUrl, err := GetCdnUrl(AttachmentBucket, ParseAttachmentKey(messageId, channelId, attachmentId, filename))
 	if err != nil {
 		logger.Error().Err(err).Msg("failed to get picture url")
-		return nil, err
+		return "", err
 	}
-	return &attachmentUrl, nil
+	return attachmentUrl, nil
 }

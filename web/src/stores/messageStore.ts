@@ -10,27 +10,6 @@ import type { Result } from '@/interfaces/util.interface';
 import { parseDate } from '@/utils/date/parseDate';
 import { params } from '@/utils/url';
 
-const testMessages: Message[] = [
-  {
-    authorId: '038678a5-b6f1-45dc-b1da-9f3837f4cdc8',
-    content: 'Hello, World!',
-    id: '2',
-    timestamp: new Date().toISOString(),
-    attachments: [],
-    channelId: 'Global Channel',
-    read: false,
-  },
-  {
-    authorId: '2d0a4682-a7a3-4461-98bc-4b403a94f000',
-    content: 'Hello, World!',
-    id: '3',
-    timestamp: new Date().toISOString(),
-    attachments: [],
-    channelId: 'Global Channel',
-    read: false,
-  },
-];
-
 interface ClearMessagesOptions {
   channelId?: string;
   messageId?: string;
@@ -39,7 +18,7 @@ interface ClearMessagesOptions {
 }
 
 export const useMessageStore = defineStore('message', () => {
-  const messages = ref<Message[]>(testMessages);
+  const messages = ref<Message[]>([]);
 
   function storeMessage(message: Message) {
     const existingMessageIndex = messages.value.findIndex(
@@ -105,12 +84,16 @@ export const useMessageStore = defineStore('message', () => {
     messages.value = messages.value.filter((v) => filters.every((f) => !f(v)));
   }
 
-  async function sendMessage(channelId: string, newMessage: NewMessage) {
+  async function sendMessage(
+    channelId: string,
+    newMessage: NewMessage,
+  ): Promise<Message | undefined> {
     const request = useApi(`/messages/${channelId}`).post(newMessage);
     const { data } = await request.json<Message>();
     if (!data.value) return;
     storeMessage(data.value);
     sortMessages();
+    return data.value;
   }
 
   async function updateMessage(messageId: string, newMessage: NewMessage) {

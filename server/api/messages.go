@@ -48,13 +48,13 @@ func parseMessages(rows pgx.Rows, buffer *[]minichat.Message) error {
 		}
 
 		if attachmentId.Valid && attachmentFilename.Valid && attachmentType.Valid {
-			attachmentUrl, err := serverutil.ParseAttachmentUrl(attachmentId.String, attachmentFilename.String)
+			attachmentUrl, err := serverutil.ParseAttachmentUrl(message.Id, message.ChannelId, attachmentId.String, attachmentFilename.String)
 			if err == nil {
 				var attachment minichat.MessageAttachment
 				attachment.Id = attachmentId.String
 				attachment.MessageId = message.Id
 				attachment.Type = attachmentType.String
-				attachment.Url = attachmentUrl
+				attachment.Url = &attachmentUrl
 				attachment.Filename = attachmentFilename.String
 				message.Attachments = append(message.Attachments, attachment)
 			}
@@ -262,27 +262,38 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	// insert attachments
 	for _, attachment := range newMessage.Attachments {
 		attachmentId := coreutil.NewUuid()
-		attachmentUrl := fmt.Sprintf("%s/%s/%s/%s", channelId, message.Id, attachmentId, attachment.Filename)
 
-		var messageAttachment minichat.MessageAttachment
-		err = conn.QueryRow(
+		_, err = conn.Exec(
 			ctx,
 			`
 			INSERT INTO minichat.attachments (id, message_id, "type", filename, url)
 			VALUES ($1, $2, $3, $4, $5)
 			RETURNING id, message_id, "type", filename, url
 		`,
-			message.Id,
 			attachmentId,
+			message.Id,
 			attachment.Type,
 			attachment.Filename,
-			attachmentUrl,
-		).Scan(&messageAttachment.Id, &messageAttachment.MessageId, &messageAttachment.Type, &messageAttachment.Filename, &messageAttachment.Url)
+			serverutil.ParseAttachmentKey(message.Id, channelId, attachmentId, attachment.Filename),
+		)
 		if err != nil {
 			errors = append(errors, err)
 			continue
 		}
 
+		attachmentUrl, err := serverutil.ParseAttachmentUrl(message.Id, channelId, attachmentId, attachment.Filename)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+
+		messageAttachment := minichat.MessageAttachment{
+			Id:        attachmentId,
+			MessageId: message.Id,
+			Type:      attachment.Type,
+			Filename:  attachment.Filename,
+			Url:       &attachmentUrl,
+		}
 		message.Attachments = append(message.Attachments, messageAttachment)
 	}
 
@@ -319,6 +330,7 @@ func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
 	userId := serverutil.GetUserIdFromContext(ctx)
 
 	conn := database.GetDatabase()
+	fmt.Println("1 attachmentId", attachmentId)
 
 	// Get the attachment
 	var attachmentKey, authorId string
@@ -329,7 +341,7 @@ func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
 		FROM minichat.attachments AS "attachment"
 		LEFT JOIN minichat.messages AS "message"
 		ON "message".id = "attachment".message_id
-		WHERE "attachment".id = '651bf56e-bb5a-496c-b20f-c8db0f24e74a'
+		WHERE "attachment".id = $1
 		`,
 		attachmentId,
 	).Scan(&attachmentKey, &authorId)
@@ -341,6 +353,7 @@ func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, "attachments may only be uploaded by their author", http.StatusUnauthorized)
 		return
 	}
+	fmt.Println("2 attachmentId", attachmentId)
 
 	minioClient := coreminio.GetMinio()
 
@@ -367,12 +380,16 @@ func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	fmt.Println("1 attachmentKey", attachmentKey)
+
 	_, err = minioClient.PutObject(ctx, serverutil.AttachmentBucket, attachmentKey, request.Body, size, minio.PutObjectOptions{
 		ContentType: ContentType,
 	})
 	if httputil.HandleError(writer, err) {
 		return
 	}
+
+	fmt.Println("2 attachmentKey", attachmentKey)
 
 	writer.WriteHeader(http.StatusCreated)
 }
@@ -468,7 +485,7 @@ func deleteMessageHandler(writer http.ResponseWriter, request *http.Request) {
 func MessagesRouter(router chi.Router) {
 	router.Get("/messages/{channelId}", getMessagesHandler)
 	router.Post("/messages/{channelId}", postMessageHandler)
-	router.Post("/attachment/{messageId}", postAttachmentHandler)
+	router.Post("/attachment/{attachmentId}", postAttachmentHandler)
 	router.Patch("/messages/{messageId}", patchMessageHandler)
 	router.Delete("/messages/{messageId}", deleteMessageHandler)
 }

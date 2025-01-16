@@ -80,7 +80,7 @@ async function onAfterEdit() {
 </script>
 
 <template>
-  <div class="hover:bg-white hover:bg-opacity-5 rounded-content message">
+  <div class="hover:bg-highlight rounded-content message">
     <div class="flex flex-row pb-1">
       <UserComponent
         v-if="message"
