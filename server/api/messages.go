@@ -365,7 +365,8 @@ func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	size := request.ContentLength
-	if size > 1024*1024 {
+	var _10MB int64 = 1024 * 1024 * 10
+	if size > _10MB {
 		http.Error(writer, "File size is too large", http.StatusBadRequest)
 		return
 	}
