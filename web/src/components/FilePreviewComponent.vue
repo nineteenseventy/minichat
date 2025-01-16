@@ -27,7 +27,7 @@ function onLargePreview() {
   <div
     class="flex w-32 h-32 border border-gray-200 rounded-lg flex-col items-center"
   >
-    <div class="flex flex-row justify-between w-full p-1">
+    <div class="flex flex-row justify-between w-full p-1 align-center gap-1">
       <span class="text-sm font-semibold truncate">{{ name }}</span>
       <i
         v-if="removeable"
@@ -41,7 +41,7 @@ function onLargePreview() {
       ></i>
     </div>
     <div
-      class="flex-1 flex items-center justify-center p-1 overflow-hidden"
+      class="flex-1 flex items-center justify-center p-1 overflow-hidden max-w-full"
       :class="{ 'cursor-pointer': enableLargePreview }"
       @click="onLargePreview()"
     >
@@ -51,9 +51,12 @@ function onLargePreview() {
         class="max-w-full max-h-full aspect-square rounded-md pi pi-image"
         alt="file preview"
       />
-      <div v-else class="flex flex-col gap-1">
+      <div
+        v-else
+        class="flex flex-col gap-1 max-w-full items-center justify-center"
+      >
         <i class="pi pi-file text-5xl"></i>
-        <p class="text-xs text-gray-500 truncate">{{ type }}</p>
+        <p class="text-xs text-gray-500 truncate max-w-full">{{ type }}</p>
       </div>
     </div>
     <!-- <div v-else class="flex flex-col gap-1">
@@ -69,11 +72,10 @@ img {
     content: '';
     display: block;
     padding-top: 100%;
-    background-color: rgba($color: white, $alpha: 0.1);
   }
   &::after {
     content: '\e972';
-    font-size: 2rem;
+    font-size: 3rem;
     display: flex;
     align-items: center;
     justify-content: center;
