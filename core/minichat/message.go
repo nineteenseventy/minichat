@@ -18,6 +18,12 @@ type Message struct {
 	Attachments []MessageAttachment `json:"attachments"`
 }
 
+type BaseMessageAttachment struct {
+	Type     string `json:"type"`
+	Filename string `json:"filename"`
+}
+
 type MessageBase struct {
-	Content string `json:"content"`
+	Content     string                  `json:"content"`
+	Attachments []BaseMessageAttachment `json:"attachments"`
 }

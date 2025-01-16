@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/minio/minio-go/v7"
 	"github.com/nineteenseventy/minichat/core/database"
 	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/minichat"
+	coreminio "github.com/nineteenseventy/minichat/core/minio"
 	coreutil "github.com/nineteenseventy/minichat/core/util"
 	serverutil "github.com/nineteenseventy/minichat/server/util"
 )
@@ -224,13 +227,13 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	channelId := chi.URLParam(request, "channelId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
-	var basemessage minichat.MessageBase
-	err := httputil.JSONRequest(request, &basemessage)
+	var newMessage minichat.MessageBase
+	err := httputil.JSONRequest(request, &newMessage)
 	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	if basemessage.Content == "" {
+	if newMessage.Content == "" {
 		http.Error(writer, "content is required", http.StatusBadRequest)
 		return
 	}
@@ -248,10 +251,48 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	`,
 		channelId,
 		userId,
-		basemessage.Content,
+		newMessage.Content,
 	).Scan(&message.Id, &message.ChannelId, &message.AuthorId, &message.Content, &timestamp, &message.Read)
 	message.Timestamp = coreutil.FormatTimestampz(timestamp)
 	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	var errors []error
+	// insert attachments
+	for _, attachment := range newMessage.Attachments {
+		attachmentId := coreutil.NewUuid()
+		attachmentUrl := fmt.Sprintf("%s/%s/%s/%s", channelId, message.Id, attachmentId, attachment.Filename)
+
+		var messageAttachment minichat.MessageAttachment
+		err = conn.QueryRow(
+			ctx,
+			`
+			INSERT INTO minichat.attachments (id, message_id, "type", filename, url)
+			VALUES ($1, $2, $3, $4, $5)
+			RETURNING id, message_id, "type", filename, url
+		`,
+			message.Id,
+			attachmentId,
+			attachment.Type,
+			attachment.Filename,
+			attachmentUrl,
+		).Scan(&messageAttachment.Id, &messageAttachment.MessageId, &messageAttachment.Type, &messageAttachment.Filename, &messageAttachment.Url)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+
+		message.Attachments = append(message.Attachments, messageAttachment)
+	}
+
+	if len(errors) > 0 {
+		var errMessages []string
+		for _, err := range errors {
+			errMessages = append(errMessages, fmt.Sprintf("'%s'", err.Error()))
+		}
+		errorsString := strings.Join(errMessages, ", ")
+		http.Error(writer, fmt.Sprintf("failed to insert attachments: %s", errorsString), http.StatusInternalServerError)
 		return
 	}
 
@@ -272,18 +313,82 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	httputil.JSONResponse(writer, message)
 }
 
+func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	attachmentId := chi.URLParam(request, "attachmentId")
+	userId := serverutil.GetUserIdFromContext(ctx)
+
+	conn := database.GetDatabase()
+
+	// Get the attachment
+	var attachmentKey, authorId string
+	err := conn.QueryRow(
+		ctx,
+		`
+		SELECT "attachment".url, "message".author_id
+		FROM minichat.attachments AS "attachment"
+		LEFT JOIN minichat.messages AS "message"
+		ON "message".id = "attachment".message_id
+		WHERE "attachment".id = '651bf56e-bb5a-496c-b20f-c8db0f24e74a'
+		`,
+		attachmentId,
+	).Scan(&attachmentKey, &authorId)
+	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	if authorId != userId {
+		http.Error(writer, "attachments may only be uploaded by their author", http.StatusUnauthorized)
+		return
+	}
+
+	minioClient := coreminio.GetMinio()
+
+	// Post the attachment to Minio
+	ContentType := request.Header.Get("Content-Type")
+	if ContentType == "" {
+		http.Error(writer, "Content-Type header is required", http.StatusBadRequest)
+		return
+	}
+
+	size := request.ContentLength
+	if size > 1024*1024 {
+		http.Error(writer, "File size is too large", http.StatusBadRequest)
+		return
+	}
+
+	if size <= -1 {
+		http.Error(writer, "File size is unknown, please provide Content-Length header", http.StatusBadRequest)
+		return
+	}
+
+	if size == 0 {
+		http.Error(writer, "File size is too small", http.StatusBadRequest)
+		return
+	}
+
+	_, err = minioClient.PutObject(ctx, serverutil.AttachmentBucket, attachmentKey, request.Body, size, minio.PutObjectOptions{
+		ContentType: ContentType,
+	})
+	if httputil.HandleError(writer, err) {
+		return
+	}
+
+	writer.WriteHeader(http.StatusCreated)
+}
+
 func patchMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	messageId := chi.URLParam(request, "messageId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
-	var basemessage minichat.MessageBase
-	err := httputil.JSONRequest(request, &basemessage)
+	var newMessage minichat.MessageBase
+	err := httputil.JSONRequest(request, &newMessage)
 	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	if basemessage.Content == "" {
+	if newMessage.Content == "" {
 		http.Error(writer, "content is required", http.StatusBadRequest)
 		return
 	}
@@ -311,14 +416,14 @@ func patchMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	_, err = conn.Exec(
 		ctx,
 		"UPDATE minichat.messages SET content = $1 WHERE id = $2",
-		basemessage.Content,
+		newMessage.Content,
 		messageId,
 	)
 	if httputil.HandleError(writer, err) {
 		return
 	}
 
-	message.Content = basemessage.Content
+	message.Content = newMessage.Content
 
 	httputil.JSONResponse(writer, message)
 }
@@ -363,6 +468,7 @@ func deleteMessageHandler(writer http.ResponseWriter, request *http.Request) {
 func MessagesRouter(router chi.Router) {
 	router.Get("/messages/{channelId}", getMessagesHandler)
 	router.Post("/messages/{channelId}", postMessageHandler)
+	router.Post("/attachment/{messageId}", postAttachmentHandler)
 	router.Patch("/messages/{messageId}", patchMessageHandler)
 	router.Delete("/messages/{messageId}", deleteMessageHandler)
 }
