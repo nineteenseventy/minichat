@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from 'vue';
+import { computed, ref, useTemplateRef, watch, type Ref } from 'vue';
 import { useMessageDraftsStore } from '@/stores/messageDraftsStore';
 import { useMessageStore } from '@/stores/messageStore';
 import type { NewMessage } from '@/interfaces/message.interface';
@@ -88,6 +88,27 @@ async function onSend() {
       });
     });
 }
+
+function checkForMentions(event: Event) {
+  // match "@something" with no word at start and EOL or space at end
+  const allMentionsRegex = /(?<!\w)@\w+(?=\s|$)/g;
+  // match "@mention" only at end of text
+  const activeMentionRegex = /(?<!\w)@\w+(?=$)/g;
+  const mentions = content.value.match(allMentionsRegex);
+  const activeMention = [...content.value.matchAll(activeMentionRegex)][0];
+  if (activeMention) {
+    const matchStart = activeMention.index;
+    const matchEnd = matchStart + activeMention[0].length;
+    const cursorPos = (event.target as HTMLTextAreaElement).selectionStart;
+    console.debug(
+      `active mention "${activeMention}" found from index ${matchStart} to ${matchEnd}`,
+    );
+    console.log('cursor at:', cursorPos);
+    console.log('cursor in mention:', matchEnd - cursorPos >= 0);
+  } else {
+    console.log('no active Mention');
+  }
+}
 </script>
 
 <template>
@@ -99,6 +120,7 @@ async function onSend() {
     enableFile
     @onSave="onSend()"
     @onFile="openFilePicker()"
+    @onInput="checkForMentions"
   />
   <input
     ref="fileInputElement"

@@ -12,6 +12,7 @@ const emit = defineEmits<{
   onSave: [];
   onCancel: [];
   onFile: [];
+  onInput: [Event];
 }>();
 
 async function onKeydown(event: KeyboardEvent) {
@@ -19,6 +20,10 @@ async function onKeydown(event: KeyboardEvent) {
     event.preventDefault();
     emit('onSave');
   }
+}
+
+function oninput(event: Event) {
+  emit('onInput', event);
 }
 </script>
 
@@ -30,6 +35,8 @@ async function onKeydown(event: KeyboardEvent) {
       rows="1"
       class="min-h-11 max-h-36"
       v-model="model"
+      ref="chatInputTextareaRef"
+      @input="oninput($event as Event)"
       @keydown="onKeydown($event)"
     />
     <Button
