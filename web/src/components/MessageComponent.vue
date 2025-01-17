@@ -84,7 +84,7 @@ async function onAfterEdit() {
 }
 
 const filePreviews = computed(
-  () => message.value?.attachments.map(mapFileAttachment) ?? [],
+  () => message.value?.attachments?.map(mapFileAttachment) ?? [],
 );
 function mapFileAttachment(attachment: MessageAttachment): FilePreview {
   return {

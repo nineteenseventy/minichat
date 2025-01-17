@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch, type Ref } from 'vue';
+import { computed, ref, useTemplateRef, watch } from 'vue';
 import { useMessageDraftsStore } from '@/stores/messageDraftsStore';
 import { useMessageStore } from '@/stores/messageStore';
 import type { NewMessage } from '@/interfaces/message.interface';
@@ -76,7 +76,7 @@ async function onSend() {
   await messageStore
     .sendMessage(props.channelId, newMessage)
     .then((message) => {
-      if (!message) return;
+      if (!message?.attachments) return;
       message.attachments.forEach((attachment) => {
         const fileIndex = messageFiles.findIndex(
           (file) => file.name === attachment.filename,
