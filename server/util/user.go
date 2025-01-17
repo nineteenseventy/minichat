@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/nineteenseventy/minichat/core/database"
+	httputil "github.com/nineteenseventy/minichat/core/http/util"
 	"github.com/nineteenseventy/minichat/core/logging"
 	"github.com/nineteenseventy/minichat/core/minichat"
 )
@@ -34,10 +35,11 @@ func GetUserMember(ctx context.Context, userId string, channelId string) (*minic
 	conn := database.GetDatabase()
 
 	var member minichat.Member
+	var picture sql.NullString
 	err := conn.QueryRow(
 		ctx,
 		`
-		SELECT "member".id, "member".user_id, "user".username
+		SELECT "member".id, "member".user_id, "user".username, "user".picture
 		FROM minichat.channels_members AS "member"
 		JOIN minichat.users AS "user"
 		ON "member".user_id = "user".id
@@ -49,6 +51,8 @@ func GetUserMember(ctx context.Context, userId string, channelId string) (*minic
 	if err != nil {
 		return nil, err
 	}
+
+	member.Picture = httputil.ParseSqlString(picture)
 
 	return &member, nil
 }
