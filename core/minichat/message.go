@@ -30,7 +30,7 @@ type BaseMessageAttachment struct {
 }
 
 type BaseMessage struct {
-	Content          string                  `json:"content"`
-	MentionedUserIds []string                `json:"mentionedUserIds"`
-	Attachments      []BaseMessageAttachment `json:"attachments"`
+	Content     string                  `json:"content"`
+	Mentions    []string                `json:"mentions"`
+	Attachments []BaseMessageAttachment `json:"attachments"`
 }

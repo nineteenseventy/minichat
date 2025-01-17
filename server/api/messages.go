@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -33,7 +32,6 @@ func parseMessages(rows pgx.Rows, buffer *[]minichat.Message) error {
 			&message.AuthorId,
 			&message.Content,
 			&timestamp,
-			&message.Read,
 			&attachmentId,
 			&attachmentFilename,
 			&attachmentType,
@@ -68,8 +66,6 @@ func parseMessages(rows pgx.Rows, buffer *[]minichat.Message) error {
 }
 
 func getMessages(ctx context.Context, channelId string, start uint64, count uint64, buffer *[]minichat.Message) error {
-	userId := serverutil.GetUserIdFromContext(ctx)
-
 	conn := database.GetDatabase()
 
 	rows, err := conn.Query(
@@ -81,83 +77,20 @@ func getMessages(ctx context.Context, channelId string, start uint64, count uint
 			"message".author_id,
 			"message"."content",
 			"message"."timestamp",
-			(CASE WHEN ("me_member".last_read_message_timestamp >= "message".timestamp) THEN true ELSE false END) AS "is_read",
 			"attachment".id,
 			"attachment".filename,
 			"attachment"."type"
 		FROM minichat.messages AS "message"
-		-- channel
-		LEFT JOIN minichat.channels AS "channel"
-		ON "channel".id = "message".channel_id
-		-- member me
-		LEFT JOIN minichat.channels_members AS "me_member"
-		ON "me_member".channel_id = "channel".id
 		-- attachments
 		LEFT JOIN minichat.attachments AS "attachment"
 		ON "attachment".message_id = "message".id
-		WHERE "message".channel_id = $1 AND "me_member".user_id = $2
+		WHERE "message".channel_id = $1
 		ORDER BY "message"."timestamp" DESC
-		LIMIT $3 OFFSET $4
+		LIMIT $2 OFFSET $3
 	`,
 		channelId,
-		userId,
 		count,
 		start,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	defer rows.Close()
-
-	return parseMessages(rows, buffer)
-}
-
-func getMessagesBeforeAfter(ctx context.Context, channelId string, isBefore bool, timestamp time.Time, count uint64, buffer *[]minichat.Message) error {
-	userId := serverutil.GetUserIdFromContext(ctx)
-
-	conn := database.GetDatabase()
-
-	var operator string
-	if isBefore {
-		operator = "<"
-	} else {
-		operator = ">"
-	}
-
-	rows, err := conn.Query(
-		ctx,
-		fmt.Sprintf(
-			`
-		SELECT
-			"message".id,
-			"message".channel_id,
-			"message".author_id,
-			"message"."content",
-			"message"."timestamp",
-			(CASE WHEN ("me_member".last_read_message_timestamp >= "message".timestamp) THEN true ELSE false END) AS "is_read",
-			"attachment".id,
-			"attachment".filename,
-			"attachment"."type"
-		FROM minichat.messages AS "message"
-		-- channel
-		LEFT JOIN minichat.channels AS "channel"
-		ON "channel".id = "message".channel_id
-		-- member me
-		LEFT JOIN minichat.channels_members AS "me_member"
-		ON "me_member".channel_id = "channel".id
-		-- attachments
-		LEFT JOIN minichat.attachments AS "attachment"
-		ON "attachment".message_id = "message".id
-		WHERE "message".channel_id = $1 AND "me_member".user_id = $2 AND "message"."timestamp" %s $3
-		ORDER BY "message"."timestamp" DESC
-		LIMIT $4
-	`, operator),
-		channelId,
-		userId,
-		timestamp,
-		count,
 	)
 
 	if err != nil {
@@ -172,11 +105,16 @@ func getMessagesBeforeAfter(ctx context.Context, channelId string, isBefore bool
 func getMessagesHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	channelId := chi.URLParam(request, "channelId")
+	userId := serverutil.GetUserIdFromContext(ctx)
+
+	_, err := serverutil.GetUserMember(ctx, userId, channelId)
+	if err != nil {
+		http.Error(writer, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+
 	query := request.URL.Query()
-
 	var start, count uint64 = 0, 10
-	var err error
-
 	if start_param := query.Get("start"); start_param != "" {
 		start, err = strconv.ParseUint(start_param, 10, 64)
 		if httputil.HandleError(writer, err) {
@@ -191,30 +129,8 @@ func getMessagesHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
-	var timestamp time.Time
-	var isBefore bool
-	var isAfter bool
-	if before_param := query.Get("before"); before_param != "" {
-		timestamp, err = coreutil.ParseTimestamp(before_param)
-		if httputil.HandleError(writer, err) {
-			return
-		}
-		isBefore = true
-	} else if after_param := query.Get("after"); after_param != "" {
-		timestamp, err = coreutil.ParseTimestamp(after_param)
-		if httputil.HandleError(writer, err) {
-			return
-		}
-		isAfter = true
-	}
-
 	var messages []minichat.Message
-	if isBefore || isAfter {
-		// if isAfter, then is before is always false
-		err = getMessagesBeforeAfter(ctx, channelId, isBefore, timestamp, count, &messages)
-	} else {
-		err = getMessages(ctx, channelId, start, count, &messages)
-	}
+	err = getMessages(ctx, channelId, start, count, &messages)
 	if httputil.HandleError(writer, err) {
 		return
 	}
@@ -227,8 +143,14 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	channelId := chi.URLParam(request, "channelId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
+	_, err := serverutil.GetUserMember(ctx, userId, channelId)
+	if err != nil {
+		http.Error(writer, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+
 	var newMessage minichat.BaseMessage
-	err := httputil.JSONRequest(request, &newMessage)
+	err = httputil.JSONRequest(request, &newMessage)
 	if httputil.HandleError(writer, err) {
 		return
 	}
@@ -239,6 +161,25 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	conn := database.GetDatabase()
+
+	// get and check mentions
+	var mentions []minichat.Mention
+	for _, userId := range newMessage.Mentions {
+		var username string
+		err = conn.QueryRow(
+			ctx,
+			"SELECT username FROM minichat.users WHERE id = $1",
+			userId,
+		).Scan(&username)
+		if err == sql.ErrNoRows {
+			http.Error(writer, fmt.Sprintf("user with id '%s' does not exist", userId), http.StatusBadRequest)
+			return
+		}
+		if httputil.HandleError(writer, err) {
+			return
+		}
+		mentions = append(mentions, minichat.Mention{UserId: userId, Username: username})
+	}
 
 	var message minichat.Message
 	var timestamp pgtype.Timestamptz
@@ -268,7 +209,6 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 			`
 			INSERT INTO minichat.attachments (id, message_id, "type", filename, url)
 			VALUES ($1, $2, $3, $4, $5)
-			RETURNING id, message_id, "type", filename, url
 		`,
 			attachmentId,
 			message.Id,
@@ -297,13 +237,29 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 		message.Attachments = append(message.Attachments, messageAttachment)
 	}
 
+	// insert mentions
+	for _, mention := range mentions {
+		_, err = conn.Exec(
+			ctx,
+			`
+			INSERT INTO minichat.mentions (message_id, user_id)
+			VALUES ($1, $2)
+		`,
+			message.Id,
+			mention.UserId,
+		)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
 	if len(errors) > 0 {
 		var errMessages []string
 		for _, err := range errors {
 			errMessages = append(errMessages, fmt.Sprintf("'%s'", err.Error()))
 		}
 		errorsString := strings.Join(errMessages, ", ")
-		http.Error(writer, fmt.Sprintf("failed to insert attachments: %s", errorsString), http.StatusInternalServerError)
+		http.Error(writer, fmt.Sprintf("failed to insert attachments and/or mentions: %s", errorsString), http.StatusInternalServerError)
 		return
 	}
 
@@ -330,7 +286,6 @@ func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
 	userId := serverutil.GetUserIdFromContext(ctx)
 
 	conn := database.GetDatabase()
-	fmt.Println("1 attachmentId", attachmentId)
 
 	// Get the attachment
 	var attachmentKey, authorId string
@@ -353,7 +308,6 @@ func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, "attachments may only be uploaded by their author", http.StatusUnauthorized)
 		return
 	}
-	fmt.Println("2 attachmentId", attachmentId)
 
 	minioClient := coreminio.GetMinio()
 
@@ -381,16 +335,12 @@ func postAttachmentHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	fmt.Println("1 attachmentKey", attachmentKey)
-
 	_, err = minioClient.PutObject(ctx, serverutil.AttachmentBucket, attachmentKey, request.Body, size, minio.PutObjectOptions{
 		ContentType: ContentType,
 	})
 	if httputil.HandleError(writer, err) {
 		return
 	}
-
-	fmt.Println("2 attachmentKey", attachmentKey)
 
 	writer.WriteHeader(http.StatusCreated)
 }

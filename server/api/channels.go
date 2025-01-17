@@ -84,9 +84,7 @@ func getChannelsHandler(writer http.ResponseWriter, request *http.Request) {
 	httputil.JSONResponse(writer, httputil.NewResult(channels))
 }
 
-func getChannel(ctx context.Context, channelId string, buffer *minichat.Channel) error {
-	userId := serverutil.GetUserIdFromContext(ctx)
-
+func getChannel(ctx context.Context, channelId string, userId string, buffer *minichat.Channel) error {
 	conn := database.GetDatabase()
 
 	var timestamp pgtype.Timestamptz
@@ -139,10 +137,17 @@ func getChannel(ctx context.Context, channelId string, buffer *minichat.Channel)
 
 func getChannelHandler(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
+	userId := serverutil.GetUserIdFromContext(ctx)
 	channelId := chi.URLParam(request, "channelId")
 	var channel minichat.Channel
 
-	err := getChannel(ctx, channelId, &channel)
+	_, err := serverutil.GetUserMember(ctx, userId, channelId)
+	if err != nil {
+		http.Error(writer, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+
+	err = getChannel(ctx, channelId, userId, &channel)
 	if httputil.HandleError(writer, err) {
 		return
 	}
