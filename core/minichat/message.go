@@ -8,6 +8,11 @@ type MessageAttachment struct {
 	Url       *string `json:"url"`
 }
 
+type Mention struct {
+	UserId   string `json:"userId"`
+	Username string `json:"username"`
+}
+
 type Message struct {
 	Id          string              `json:"id"`
 	ChannelId   string              `json:"channelId"`
@@ -15,6 +20,7 @@ type Message struct {
 	Content     string              `json:"content"`
 	Timestamp   *string             `json:"timestamp"`
 	Read        bool                `json:"read"`
+	Mentions    []Mention           `json:"mentions"`
 	Attachments []MessageAttachment `json:"attachments"`
 }
 
@@ -23,7 +29,8 @@ type BaseMessageAttachment struct {
 	Filename string `json:"filename"`
 }
 
-type MessageBase struct {
-	Content     string                  `json:"content"`
-	Attachments []BaseMessageAttachment `json:"attachments"`
+type BaseMessage struct {
+	Content          string                  `json:"content"`
+	MentionedUserIds []string                `json:"mentionedUserIds"`
+	Attachments      []BaseMessageAttachment `json:"attachments"`
 }

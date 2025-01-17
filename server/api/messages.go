@@ -227,7 +227,7 @@ func postMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	channelId := chi.URLParam(request, "channelId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
-	var newMessage minichat.MessageBase
+	var newMessage minichat.BaseMessage
 	err := httputil.JSONRequest(request, &newMessage)
 	if httputil.HandleError(writer, err) {
 		return
@@ -400,7 +400,7 @@ func patchMessageHandler(writer http.ResponseWriter, request *http.Request) {
 	messageId := chi.URLParam(request, "messageId")
 	userId := serverutil.GetUserIdFromContext(ctx)
 
-	var newMessage minichat.MessageBase
+	var newMessage minichat.BaseMessage
 	err := httputil.JSONRequest(request, &newMessage)
 	if httputil.HandleError(writer, err) {
 		return
