@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/rs/zerolog"
@@ -40,6 +41,6 @@ func PgError(logger zerolog.Logger) pgconn.PgErrorHandler {
 			Str("schema", err.SchemaName).
 			Str("table", err.TableName).
 			Msg(err.Message)
-		return true
+		return !strings.EqualFold(err.Severity, "FATAL")
 	}
 }
